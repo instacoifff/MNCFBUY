@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
 import styles from './dashboard.module.css'
-import { Package, Tags, ShoppingCart, DollarSign } from 'lucide-react'
 import { DashboardCharts } from './DashboardCharts'
 import { format, subDays, isAfter } from 'date-fns'
 
@@ -11,8 +10,6 @@ export default async function AdminDashboardOverview() {
 
   // 1. Quick Stats
   const { count: productCount } = await supabase.from('products').select('*', { count: 'exact', head: true })
-  const { count: categoryCount } = await supabase.from('categories').select('*', { count: 'exact', head: true })
-  const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true })
 
   // 2. Fetch all orders for rich data
   const { data: allOrders } = await supabase
@@ -27,33 +24,128 @@ export default async function AdminDashboardOverview() {
     .filter(o => o.status === 'delivered')
     .reduce((sum, order) => sum + Number(order.total_amount), 0)
 
-  // 3. Status Breakdown Data
+  // 3. Advanced Metrics & Growth
+  const thirtyDaysAgo = subDays(new Date(), 30)
+  const sixtyDaysAgo = subDays(new Date(), 60)
+  
+  const currentOrders = orders.filter(o => isAfter(new Date(o.created_at), thirtyDaysAgo))
+  const currentDelivered = currentOrders.filter(o => o.status === 'delivered')
+  const currentRevenue = currentDelivered.reduce((sum, o) => sum + Number(o.total_amount), 0)
+  
+  const prevOrders = orders.filter(o => isAfter(new Date(o.created_at), sixtyDaysAgo) && !isAfter(new Date(o.created_at), thirtyDaysAgo))
+  const prevDelivered = prevOrders.filter(o => o.status === 'delivered')
+  const prevRevenue = prevDelivered.reduce((sum, o) => sum + Number(o.total_amount), 0)
+  
+  const calcGrowth = (current: number, prev: number) => {
+    if (prev === 0) return current > 0 ? 100 : 0
+    return ((current - prev) / prev) * 100
+  }
+  
+  const metrics = {
+    revenue: {
+      value: currentRevenue,
+      growth: calcGrowth(currentRevenue, prevRevenue)
+    },
+    orders: {
+      value: currentOrders.length,
+      growth: calcGrowth(currentOrders.length, prevOrders.length)
+    },
+    aov: {
+      value: currentOrders.length > 0 ? currentRevenue / currentOrders.length : 0,
+      growth: calcGrowth(
+        currentOrders.length > 0 ? currentRevenue / currentOrders.length : 0, 
+        prevOrders.length > 0 ? prevRevenue / prevOrders.length : 0
+      )
+    }
+  }
+
+  // Returning Customers
+  const emailCounts = orders.reduce((acc: any, order) => {
+    const email = (order.shipping_address as any)?.email
+    if (email) {
+      acc[email] = (acc[email] || 0) + 1
+    }
+    return acc
+  }, {})
+  
+  let returningCount = 0
+  let newCount = 0
+  Object.values(emailCounts).forEach((count: any) => {
+    if (count > 1) returningCount++
+    else newCount++
+  })
+  
+  // Status Breakdown Data
   const statusCounts = orders.reduce((acc: any, order) => {
     acc[order.status] = (acc[order.status] || 0) + 1
     return acc
   }, {})
 
   const statusData = [
-    { name: 'Pending', value: statusCounts['pending'] || 0, color: '#f59e0b' },
-    { name: 'Shipped', value: statusCounts['shipped'] || 0, color: '#3b82f6' },
-    { name: 'Delivered', value: statusCounts['delivered'] || 0, color: '#10b981' },
+    { name: 'Paid/Delivered', value: statusCounts['delivered'] || 0, color: '#10b981' },
+    { name: 'Processing', value: statusCounts['pending'] || 0, color: '#3b82f6' },
+    { name: 'Shipped', value: statusCounts['shipped'] || 0, color: '#a855f7' },
     { name: 'Cancelled', value: statusCounts['cancelled'] || 0, color: '#ef4444' },
-  ].filter(s => s.value > 0) // Only show statuses that have orders
+  ].filter(s => s.value > 0)
 
-  // 4. Revenue Over Time (Year to Date)
+  // Top Cities
+  const cityCounts = orders.reduce((acc: any, order) => {
+    let city = (order.shipping_address as any)?.city
+    // Clean up city string
+    if (!city || city.trim() === '') city = 'Unknown'
+    city = city.trim().charAt(0).toUpperCase() + city.trim().slice(1).toLowerCase()
+    
+    acc[city] = (acc[city] || 0) + 1
+    return acc
+  }, {})
+  
+  const totalValidOrders = orders.length || 1
+  const topCities = Object.entries(cityCounts)
+    .map(([name, sales]) => ({ 
+      name, 
+      sales: sales as number,
+      percentage: Math.round(((sales as number) / totalValidOrders) * 100)
+    }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 5)
+
+  // Top Products
+  const { data: orderItems } = await supabase
+    .from('order_items')
+    .select('quantity, products(title)')
+
+  let productSalesTotal = 0
+  const productSales = new Map()
+  if (orderItems) {
+    orderItems.forEach((item: any) => {
+      const product = Array.isArray(item.products) ? item.products[0] : item.products
+      const title = product?.title || 'Unknown'
+      const qty = item.quantity
+      productSales.set(title, (productSales.get(title) || 0) + qty)
+      productSalesTotal += qty
+    })
+  }
+  
+  const topProducts = Array.from(productSales, ([name, sales]) => ({ 
+    name, 
+    sales,
+    percentage: Math.round((sales / (productSalesTotal || 1)) * 100)
+  }))
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 5)
+
+  // Revenue Over Time (Year to Date)
   const currentYear = new Date().getFullYear()
   const ytdDeliveredOrders = orders.filter(o => o.status === 'delivered' && new Date(o.created_at).getFullYear() === currentYear)
   
-  // Initialize months array (Jan to current month)
   const currentMonth = new Date().getMonth()
   const revenueMap = new Map()
-  
   const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  
   for (let i = 0; i <= currentMonth; i++) {
     revenueMap.set(monthNames[i], 0)
   }
 
-  // Populate actual revenue
   ytdDeliveredOrders.forEach(order => {
     const monthIndex = new Date(order.created_at).getMonth()
     const monthStr = monthNames[monthIndex]
@@ -64,118 +156,25 @@ export default async function AdminDashboardOverview() {
 
   const revenueData = Array.from(revenueMap, ([date, revenue]) => ({ date, revenue }))
 
-  // 5. Recent Activity (Latest 5 orders)
+  // Recent Activity (Latest 5 orders)
   const recentOrders = orders.slice(0, 5).map(order => ({
     id: order.id,
-    name: (order.shipping_address as any)?.fullName || 'Unknown',
+    name: (order.shipping_address as any)?.fullName || 'Unknown Customer',
     total: Number(order.total_amount),
     status: order.status,
     date: format(new Date(order.created_at), 'MMM dd, yyyy')
   }))
 
-  // 6. Top Products (Need to fetch order items)
-  // Disable type checking on the join strictly since supabase inference might be tricky
-  const { data: orderItems } = await supabase
-    .from('order_items')
-    .select('quantity, products(title)')
-
-  const productSales = new Map()
-  if (orderItems) {
-    orderItems.forEach((item: any) => {
-      // Depending on Supabase setup, products could be an object or array
-      const product = Array.isArray(item.products) ? item.products[0] : item.products
-      const title = product?.title || 'Unknown'
-      productSales.set(title, (productSales.get(title) || 0) + item.quantity)
-    })
-  }
-  
-  const topProducts = Array.from(productSales, ([name, sales]) => ({ name, sales }))
-    .sort((a, b) => b.sales - a.sales)
-    .slice(0, 5)
-
   return (
     <div>
-      <h1 className={styles.title}>Dashboard Overview</h1>
-      <p className={styles.subtitle}>Welcome back to your super admin panel.</p>
-
-      <div className={styles.statsGrid}>
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' }}>
-            <DollarSign size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Total Revenue</p>
-            <p className={styles.statValue}>TND {totalRevenue.toFixed(2)}</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-            <ShoppingCart size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Total Orders</p>
-            <p className={styles.statValue}>{orderCount || 0}</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-            <Package size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Products</p>
-            <p className={styles.statValue}>{productCount || 0}</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' }}>
-            <Tags size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Categories</p>
-            <p className={styles.statValue}>{categoryCount || 0}</p>
-          </div>
-        </div>
-      </div>
-
-      <div className={styles.statsGrid} style={{ marginTop: '1.5rem' }}>
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
-            <ShoppingCart size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Pending Orders</p>
-            <p className={styles.statValue}>{statusCounts['pending'] || 0}</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-            <Package size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Delivered Orders</p>
-            <p className={styles.statValue}>{statusCounts['delivered'] || 0}</p>
-          </div>
-        </div>
-
-        <div className={styles.statCard}>
-          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
-            <Tags size={24} />
-          </div>
-          <div className={styles.statInfo}>
-            <p className={styles.statLabel}>Cancelled Orders</p>
-            <p className={styles.statValue}>{statusCounts['cancelled'] || 0}</p>
-          </div>
-        </div>
-      </div>
-
       <DashboardCharts 
+        metrics={metrics}
+        productCount={productCount || 0}
+        returningCount={returningCount}
         revenueData={revenueData} 
         statusData={statusData} 
-        topProducts={topProducts} 
+        topProducts={topProducts}
+        topCities={topCities}
         recentOrders={recentOrders} 
       />
     </div>
