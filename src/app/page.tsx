@@ -37,7 +37,7 @@ export default function Home() {
           </Link>
         </div>
         <div className={styles.grid}>
-          {['Watches', 'Leather Goods', 'Tech Accessories'].map((cat, i) => (
+          {['Electronics & Gadgets', 'Fashion & Apparel', 'Home & Garden', 'Health & Beauty', 'Sports & Outdoors'].slice(0, 4).map((cat, i) => (
             <div key={i} className={`${styles.categoryCard} hover-lift`}>
               <div className={styles.categoryImagePlaceholder}></div>
               <div className={styles.categoryInfo}>

@@ -21,7 +21,8 @@ export function Navbar() {
         <nav className={styles.nav}>
           <Link href="/categories/electronics" className={styles.navLink}>Electronics</Link>
           <Link href="/categories/fashion" className={styles.navLink}>Fashion</Link>
-          <Link href="/categories/home" className={styles.navLink}>Home</Link>
+          <Link href="/categories/home-garden" className={styles.navLink}>Home & Garden</Link>
+          <Link href="/categories/health-beauty" className={styles.navLink}>Health & Beauty</Link>
         </nav>
 
         {/* Actions */}
