@@ -18,13 +18,13 @@ export default async function AdminDashboardLayout({
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.logoContainer}>
-          <Link href="/admin/dashboard" className={styles.logo}>
+          <Link href="/admin" className={styles.logo}>
             Moncef<span>Admin</span>
           </Link>
         </div>
 
         <nav className={styles.nav}>
-          <Link href="/admin/dashboard" className={styles.navItem}>
+          <Link href="/admin" className={styles.navItem}>
             <LayoutDashboard size={20} />
             <span>Overview</span>
           </Link>
