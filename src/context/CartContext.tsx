@@ -9,6 +9,7 @@ export type CartItem = {
   price: number
   quantity: number
   image_url: string
+  maxStock: number
 }
 
 type CartContextType = {
@@ -57,11 +58,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (existingItem) {
         return current.map(item => 
           item.product_id === newItem.product_id 
-            ? { ...item, quantity: item.quantity + newItem.quantity }
+            ? { ...item, quantity: Math.min(item.quantity + newItem.quantity, item.maxStock) }
             : item
         )
       }
-      return [...current, { ...newItem, id: Math.random().toString(36).substring(7) }]
+      return [...current, { ...newItem, quantity: Math.min(newItem.quantity, newItem.maxStock), id: Math.random().toString(36).substring(7) }]
     })
   }
 
@@ -72,7 +73,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const updateQuantity = (id: string, quantity: number) => {
     if (quantity < 1) return
     setItems(current => 
-      current.map(item => item.id === id ? { ...item, quantity } : item)
+      current.map(item => item.id === id ? { ...item, quantity: Math.min(quantity, item.maxStock) } : item)
     )
   }
 

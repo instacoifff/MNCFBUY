@@ -15,6 +15,29 @@ export async function createOrder(formData: FormData, items: any[], totalAmount:
 
   const orderId = crypto.randomUUID()
 
+  // 0. Pre-Checkout Stock Verification
+  // Fetch the latest stock for all items from the database
+  const productIds = items.map(item => item.product_id)
+  const { data: products, error: productsError } = await supabase
+    .from('products')
+    .select('id, title, stock')
+    .in('id', productIds)
+
+  if (productsError || !products) {
+    return { error: 'Failed to verify inventory. Please try again.' }
+  }
+
+  // Check if any item exceeds available stock
+  for (const item of items) {
+    const dbProduct = products.find(p => p.id === item.product_id)
+    if (!dbProduct) {
+      return { error: `Product ${item.title} no longer exists.` }
+    }
+    if (item.quantity > dbProduct.stock) {
+      return { error: `Sorry, only ${dbProduct.stock} left in stock for ${dbProduct.title}.` }
+    }
+  }
+
   // 1. Create the Order
   const { error: orderError } = await supabase.from('orders').insert({
     id: orderId,

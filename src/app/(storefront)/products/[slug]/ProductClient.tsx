@@ -17,7 +17,8 @@ export function ProductClient({ product }: { product: any }) {
       title: product.title,
       price: product.price,
       quantity,
-      image_url: product.image_url || ''
+      image_url: product.image_url || '',
+      maxStock: product.stock
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)

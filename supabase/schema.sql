@@ -19,7 +19,7 @@ CREATE TABLE products (
   slug TEXT NOT NULL UNIQUE,
   description TEXT,
   price DECIMAL(10, 2) NOT NULL,
-  stock INTEGER NOT NULL DEFAULT 0,
+  stock INTEGER NOT NULL DEFAULT 0 CHECK (stock >= 0),
   image_url TEXT,
   images JSONB DEFAULT '[]'::jsonb, -- Array of additional image URLs
   is_featured BOOLEAN DEFAULT false,
@@ -90,3 +90,50 @@ INSERT INTO categories (name, slug, description) VALUES
   ('Home & Garden', 'home-garden', 'Furniture, decor, and outdoor essentials'),
   ('Health & Beauty', 'health-beauty', 'Skincare, cosmetics, and wellness products'),
   ('Sports & Outdoors', 'sports-outdoors', 'Gear and equipment for active lifestyles');
+
+-- 8. Stock Management Triggers
+-- Function and Trigger to deduct stock during checkout
+CREATE OR REPLACE FUNCTION decrement_stock_on_insert()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- Deduct the quantity from the product's stock atomically
+  UPDATE products
+  SET stock = stock - NEW.quantity
+  WHERE id = NEW.product_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_decrement_stock
+AFTER INSERT ON order_items
+FOR EACH ROW
+EXECUTE FUNCTION decrement_stock_on_insert();
+
+-- Function and Trigger to restore stock if an order is cancelled, or deduct if un-cancelled
+CREATE OR REPLACE FUNCTION handle_order_status_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If order is changed TO cancelled (from something else), restore stock
+  IF (NEW.status = 'cancelled' AND OLD.status != 'cancelled') THEN
+    UPDATE products
+    SET stock = stock + oi.quantity
+    FROM order_items oi
+    WHERE oi.order_id = NEW.id AND products.id = oi.product_id;
+  
+  -- If order is changed FROM cancelled (to something else), deduct stock again
+  ELSIF (OLD.status = 'cancelled' AND NEW.status != 'cancelled') THEN
+    UPDATE products
+    SET stock = stock - oi.quantity
+    FROM order_items oi
+    WHERE oi.order_id = NEW.id AND products.id = oi.product_id;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_restore_stock ON orders;
+CREATE TRIGGER trg_handle_order_status
+AFTER UPDATE ON orders
+FOR EACH ROW
+EXECUTE FUNCTION handle_order_status_change();

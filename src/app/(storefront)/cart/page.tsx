@@ -59,6 +59,8 @@ export default function CartPage() {
                       <button 
                         className={styles.qtyBtn} 
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        disabled={item.quantity >= item.maxStock}
+                        title={item.quantity >= item.maxStock ? "Maximum stock reached" : ""}
                       >
                         <Plus size={14} />
                       </button>
