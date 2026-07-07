@@ -36,7 +36,7 @@ export function DashboardCharts({ revenueData, statusData, topProducts, recentOr
       {/* Revenue Area Chart */}
       <div className={styles.chartCard} style={{ gridColumn: '1 / -1' }}>
         <div className={styles.chartHeader}>
-          <h3>Revenue Over Time (Last 30 Days)</h3>
+          <h3>Revenue Over Time (Year to Date)</h3>
         </div>
         <div className={styles.chartBody}>
           <ResponsiveContainer width="100%" height={300}>
@@ -58,7 +58,11 @@ export function DashboardCharts({ revenueData, statusData, topProducts, recentOr
                 tick={{ fontSize: 12, fill: '#64748b' }} 
                 tickLine={false} 
                 axisLine={false} 
-                tickFormatter={(value) => `${value}TND`}
+                width={80}
+                tickFormatter={(value) => {
+                  if (value >= 1000) return `${(value / 1000).toFixed(1)}k TND`;
+                  return `${value} TND`;
+                }}
               />
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
               <RechartsTooltip content={<CustomTooltip />} />

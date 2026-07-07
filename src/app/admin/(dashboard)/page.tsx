@@ -38,22 +38,25 @@ export default async function AdminDashboardOverview() {
     { name: 'Cancelled', value: statusCounts['cancelled'] || 0, color: '#ef4444' },
   ].filter(s => s.value > 0) // Only show statuses that have orders
 
-  // 4. Revenue Over Time (Last 30 Days)
-  const thirtyDaysAgo = subDays(new Date(), 30)
-  const recentDeliveredOrders = orders.filter(o => o.status === 'delivered' && isAfter(new Date(o.created_at), thirtyDaysAgo))
+  // 4. Revenue Over Time (Year to Date)
+  const currentYear = new Date().getFullYear()
+  const ytdDeliveredOrders = orders.filter(o => o.status === 'delivered' && new Date(o.created_at).getFullYear() === currentYear)
   
-  // Initialize last 30 days array with 0 revenue
+  // Initialize months array (Jan to current month)
+  const currentMonth = new Date().getMonth()
   const revenueMap = new Map()
-  for (let i = 29; i >= 0; i--) {
-    const dateStr = format(subDays(new Date(), i), 'MMM dd')
-    revenueMap.set(dateStr, 0)
+  
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+  for (let i = 0; i <= currentMonth; i++) {
+    revenueMap.set(monthNames[i], 0)
   }
 
   // Populate actual revenue
-  recentDeliveredOrders.forEach(order => {
-    const dateStr = format(new Date(order.created_at), 'MMM dd')
-    if (revenueMap.has(dateStr)) {
-      revenueMap.set(dateStr, revenueMap.get(dateStr) + Number(order.total_amount))
+  ytdDeliveredOrders.forEach(order => {
+    const monthIndex = new Date(order.created_at).getMonth()
+    const monthStr = monthNames[monthIndex]
+    if (revenueMap.has(monthStr)) {
+      revenueMap.set(monthStr, revenueMap.get(monthStr) + Number(order.total_amount))
     }
   })
 
@@ -131,6 +134,38 @@ export default async function AdminDashboardOverview() {
           <div className={styles.statInfo}>
             <p className={styles.statLabel}>Categories</p>
             <p className={styles.statValue}>{categoryCount || 0}</p>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.statsGrid} style={{ marginTop: '1.5rem' }}>
+        <div className={styles.statCard}>
+          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+            <ShoppingCart size={24} />
+          </div>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Pending Orders</p>
+            <p className={styles.statValue}>{statusCounts['pending'] || 0}</p>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+            <Package size={24} />
+          </div>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Delivered Orders</p>
+            <p className={styles.statValue}>{statusCounts['delivered'] || 0}</p>
+          </div>
+        </div>
+
+        <div className={styles.statCard}>
+          <div className={styles.statIconWrapper} style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+            <Tags size={24} />
+          </div>
+          <div className={styles.statInfo}>
+            <p className={styles.statLabel}>Cancelled Orders</p>
+            <p className={styles.statValue}>{statusCounts['cancelled'] || 0}</p>
           </div>
         </div>
       </div>
