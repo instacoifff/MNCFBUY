@@ -10,6 +10,14 @@ export default async function AdminDashboardOverview() {
   const { count: categoryCount } = await supabase.from('categories').select('*', { count: 'exact', head: true })
   const { count: orderCount } = await supabase.from('orders').select('*', { count: 'exact', head: true })
 
+  // Calculate total revenue (Sum of all DELIVERED orders)
+  const { data: revenueData } = await supabase
+    .from('orders')
+    .select('total_amount')
+    .eq('status', 'delivered')
+
+  const totalRevenue = revenueData?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0
+
   return (
     <div>
       <h1 className={styles.title}>Dashboard Overview</h1>
@@ -22,7 +30,7 @@ export default async function AdminDashboardOverview() {
           </div>
           <div className={styles.statInfo}>
             <p className={styles.statLabel}>Total Revenue</p>
-            <p className={styles.statValue}>$0.00</p>
+            <p className={styles.statValue}>TND {totalRevenue.toFixed(2)}</p>
           </div>
         </div>
 
