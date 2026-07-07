@@ -11,6 +11,7 @@ type Product = {
   title: string
   slug: string
   price: number
+  stock: number
   image_url?: string
   category?: { name: string }
 }
@@ -43,7 +44,8 @@ export function ProductCard({ product }: { product: Product }) {
               title: product.title,
               price: product.price,
               quantity: 1,
-              image_url: product.image_url || ''
+              image_url: product.image_url || '',
+              maxStock: product.stock
             })}
           >
             <ShoppingCart size={18} />
