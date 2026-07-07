@@ -61,11 +61,13 @@ ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Categories are viewable by everyone" ON categories FOR SELECT USING (true);
 CREATE POLICY "Categories are insertable by authenticated users" ON categories FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Categories are updatable by authenticated users" ON categories FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Categories are deletable by authenticated users" ON categories FOR DELETE TO authenticated USING (true);
 
 -- Products: Anyone can read, only authenticated users can write
 CREATE POLICY "Products are viewable by everyone" ON products FOR SELECT USING (true);
 CREATE POLICY "Products are insertable by authenticated users" ON products FOR INSERT TO authenticated WITH CHECK (true);
 CREATE POLICY "Products are updatable by authenticated users" ON products FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Products are deletable by authenticated users" ON products FOR DELETE TO authenticated USING (true);
 
 -- Orders: Users can read their own orders. Anyone can insert (guest checkout). Admins can update.
 CREATE POLICY "Users can view their own orders" ON orders FOR SELECT USING (auth.uid() = user_id);
