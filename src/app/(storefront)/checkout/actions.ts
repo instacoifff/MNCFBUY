@@ -49,6 +49,6 @@ export async function createOrder(formData: FormData, items: any[], totalAmount:
   // 3. Optional: Deduct stock from products (simplified)
   // For a production app, we would use an RPC or a database trigger to ensure consistency.
 
-  revalidatePath('/admin/dashboard')
+  revalidatePath('/admin')
   return { success: true, orderId: order.id }
 }

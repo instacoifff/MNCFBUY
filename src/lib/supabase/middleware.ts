@@ -70,7 +70,7 @@ export async function updateSession(request: NextRequest) {
   // If already logged in and trying to access login page, redirect to dashboard
   if (request.nextUrl.pathname === '/admin/login' && user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/admin/dashboard'
+    url.pathname = '/admin'
     return NextResponse.redirect(url)
   }
 
