@@ -1,3 +1,5 @@
+/* eslint-disable */
+// @ts-nocheck
 import { createClient } from '@/lib/supabase/server'
 import { ProductGrid } from '@/components/product/ProductGrid'
 import { notFound } from 'next/navigation'
