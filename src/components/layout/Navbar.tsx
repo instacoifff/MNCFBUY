@@ -6,7 +6,7 @@ import { ShoppingCart, Search, Menu, User } from 'lucide-react';
 import styles from './Navbar.module.css';
 import { useCart } from '@/context/CartContext';
 
-export function Navbar() {
+export function Navbar({ categories }: { categories?: { name: string, slug: string }[] }) {
   const { itemCount } = useCart();
 
   return (
@@ -24,10 +24,15 @@ export function Navbar() {
 
         {/* Desktop Navigation */}
         <nav className={styles.nav}>
-          <Link href="/categories/electronics" className={styles.navLink}>Electronics</Link>
-          <Link href="/categories/fashion" className={styles.navLink}>Fashion</Link>
-          <Link href="/categories/home-garden" className={styles.navLink}>Home & Garden</Link>
-          <Link href="/categories/health-beauty" className={styles.navLink}>Health & Beauty</Link>
+          {categories && categories.length > 0 ? (
+            categories.map(cat => (
+              <Link key={cat.slug} href={`/categories/${cat.slug}`} className={styles.navLink}>
+                {cat.name}
+              </Link>
+            ))
+          ) : (
+            <Link href="/categories/all" className={styles.navLink}>All Products</Link>
+          )}
         </nav>
 
         {/* Actions */}

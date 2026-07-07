@@ -37,11 +37,8 @@ export default async function Home() {
             Discover our curated collection of extraordinary products designed to elevate your everyday life.
           </p>
           <div className={styles.heroActions}>
-            <Link href="/categories/electronics" className={styles.primaryButton}>
-              Shop Electronics
-            </Link>
-            <Link href="/categories/fashion" className={styles.secondaryButton}>
-              View Fashion
+            <Link href="/categories/all" className={styles.primaryButton}>
+              Shop All Products
             </Link>
           </div>
         </div>
