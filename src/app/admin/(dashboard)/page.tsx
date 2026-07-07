@@ -4,6 +4,8 @@ import { Package, Tags, ShoppingCart, DollarSign } from 'lucide-react'
 import { DashboardCharts } from './DashboardCharts'
 import { format, subDays, isAfter } from 'date-fns'
 
+export const dynamic = 'force-dynamic'
+
 export default async function AdminDashboardOverview() {
   const supabase = await createClient()
 
