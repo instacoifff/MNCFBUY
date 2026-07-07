@@ -1,0 +1,109 @@
+.card {
+  background-color: var(--color-bg-primary);
+  border-radius: var(--border-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  border: 1px solid rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.imageContainer {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: var(--color-bg-secondary);
+  overflow: hidden;
+  position: relative;
+  display: block;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform var(--transition-slow);
+}
+
+.card:hover .image {
+  transform: scale(1.05);
+}
+
+.imagePlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-tertiary);
+  font-size: 0.875rem;
+}
+
+.info {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.category {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: auto;
+  line-height: 1.4;
+  text-decoration: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.title:hover {
+  color: var(--color-brand-primary);
+}
+
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.price {
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: var(--color-brand-primary);
+  font-family: 'Outfit', sans-serif;
+}
+
+.addToCartBtn {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addToCartBtn:hover {
+  background-color: var(--color-brand-primary);
+  color: white;
+}

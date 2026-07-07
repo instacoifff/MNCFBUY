@@ -1,9 +1,14 @@
+'use client';
+
 import React from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Search, Menu, User } from 'lucide-react';
 import styles from './Navbar.module.css';
+import { useCart } from '@/context/CartContext';
 
 export function Navbar() {
+  const { itemCount } = useCart();
+
   return (
     <header className={styles.header}>
       <div className={styles.container}>
@@ -35,7 +40,7 @@ export function Navbar() {
           </button>
           <Link href="/cart" className={styles.cartButton}>
             <ShoppingCart size={20} />
-            <span className={styles.cartCount}>0</span>
+            {itemCount > 0 && <span className={styles.cartCount}>{itemCount}</span>}
           </Link>
         </div>
       </div>

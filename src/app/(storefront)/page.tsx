@@ -1,53 +1,70 @@
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/Button";
-import styles from "./page.module.css";
+import { createClient } from '@/lib/supabase/server'
+import { ProductGrid } from '@/components/product/ProductGrid'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import styles from './home.module.css'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+
+  // Fetch featured products
+  const { data: featuredProducts } = await supabase
+    .from('products')
+    .select(`
+      *,
+      category:categories(name)
+    `)
+    .eq('is_featured', true)
+    .limit(8)
+
+  // Fetch recent products
+  const { data: newArrivals } = await supabase
+    .from('products')
+    .select(`
+      *,
+      category:categories(name)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(8)
+
   return (
-    <div className={styles.page}>
+    <div className={styles.container}>
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <h1 className={styles.heroTitle}>
-            Experience <span className="text-gradient">Luxury</span> in Every Detail.
-          </h1>
+          <h1 className={styles.heroTitle}>Premium Quality.<br/>World Class Design.</h1>
           <p className={styles.heroSubtitle}>
-            Discover our exclusive collection of premium goods curated for the modern lifestyle. Uncompromising quality meets striking design.
+            Discover our curated collection of extraordinary products designed to elevate your everyday life.
           </p>
           <div className={styles.heroActions}>
-            <Button size="lg">Shop the Collection</Button>
-            <Button variant="outline" size="lg">View Lookbook</Button>
-          </div>
-        </div>
-        <div className={styles.heroImageContainer}>
-          {/* We use a colored placeholder block for now until we have real product images */}
-          <div className={`${styles.heroImagePlaceholder} glass`}>
-            <div className={styles.abstractShape}></div>
+            <Link href="/categories/electronics" className={styles.primaryButton}>
+              Shop Electronics
+            </Link>
+            <Link href="/categories/fashion" className={styles.secondaryButton}>
+              View Fashion
+            </Link>
           </div>
         </div>
       </section>
 
-      {/* Featured Categories */}
-      <section className={styles.featured}>
+      {/* Featured Products */}
+      <section className={styles.section}>
         <div className={styles.sectionHeader}>
-          <h2>Featured Categories</h2>
-          <Link href="/categories" className={styles.viewAll}>
-            View all categories &rarr;
+          <h2 className={styles.sectionTitle}>Featured Collection</h2>
+          <Link href="/categories/all" className={styles.viewAllLink}>
+            View All <ArrowRight size={16} />
           </Link>
         </div>
-        <div className={styles.grid}>
-          {['Electronics & Gadgets', 'Fashion & Apparel', 'Home & Garden', 'Health & Beauty', 'Sports & Outdoors'].slice(0, 4).map((cat, i) => (
-            <div key={i} className={`${styles.categoryCard} hover-lift`}>
-              <div className={styles.categoryImagePlaceholder}></div>
-              <div className={styles.categoryInfo}>
-                <h3>{cat}</h3>
-                <p>Explore collection</p>
-              </div>
-            </div>
-          ))}
+        <ProductGrid products={featuredProducts || []} />
+      </section>
+
+      {/* New Arrivals */}
+      <section className={styles.section} style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
+        <div className={styles.sectionHeader}>
+          <h2 className={styles.sectionTitle}>New Arrivals</h2>
         </div>
+        <ProductGrid products={newArrivals || []} />
       </section>
     </div>
-  );
+  )
 }

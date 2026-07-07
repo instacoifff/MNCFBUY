@@ -1,0 +1,124 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero {
+  padding: 6rem 2rem;
+  background: linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-secondary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.05);
+}
+
+.heroContent {
+  max-width: 800px;
+}
+
+.heroTitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-text-primary);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.heroSubtitle {
+  font-size: 1.25rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.primaryButton {
+  background-color: var(--color-brand-primary);
+  color: white;
+  padding: 1rem 2rem;
+  border-radius: var(--border-radius-full);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
+}
+
+.primaryButton:hover {
+  background-color: var(--color-brand-secondary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.secondaryButton {
+  background-color: transparent;
+  color: var(--color-text-primary);
+  padding: 1rem 2rem;
+  border-radius: var(--border-radius-full);
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid var(--color-text-tertiary);
+  transition: all var(--transition-fast);
+}
+
+.secondaryButton:hover {
+  border-color: var(--color-brand-primary);
+  color: var(--color-brand-primary);
+}
+
+.section {
+  padding: 5rem 2rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 3rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.sectionTitle {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.viewAllLink {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-brand-primary);
+  font-weight: 600;
+  text-decoration: none;
+  transition: gap var(--transition-fast);
+}
+
+.viewAllLink:hover {
+  gap: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .heroActions {
+    flex-direction: column;
+  }
+  .primaryButton, .secondaryButton {
+    width: 100%;
+  }
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}

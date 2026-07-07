@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "World-class e-commerce experience.",
 };
 
+import { CartProvider } from "@/context/CartContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -26,7 +28,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <CartProvider>
+          {children}
+        </CartProvider>
       </body>
     </html>
   );
