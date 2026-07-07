@@ -12,7 +12,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-import { Navbar } from "@/components/layout/Navbar";
 
 export const metadata: Metadata = {
   title: "MoncefBuy - Premium E-Commerce",
@@ -27,10 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Navbar />
-        <main style={{ minHeight: 'calc(100vh - 4rem)' }}>
-          {children}
-        </main>
+        {children}
       </body>
     </html>
   );
