@@ -288,7 +288,7 @@ export function DashboardCharts({
                         <td style={{ fontWeight: 600 }}>${order.total.toFixed(2)}</td>
                         <td className={styles.paymentCell}>
                           <CreditCard size={14} color={isEven ? "#3b82f6" : "#f59e0b"} />
-                          <span>•••• {Math.floor(1000 + Math.random() * 9000)}</span>
+                          <span>•••• {1000 + (idx * 1234) % 9000}</span>
                         </td>
                         <td className={styles.fulfillmentCell}>
                           <div className={`${styles.dot} ${styles['dot-' + (order.status === 'delivered' ? 'paid' : order.status)]}`}></div>
@@ -349,10 +349,10 @@ export function DashboardCharts({
                 </div>
               </div>
               <div className={styles.donutLegend} style={{ marginLeft: '1rem' }}>
-                {statusData.map(status => (
+                {statusData.map((status, index) => (
                   <div key={status.name} className={styles.legendItem}>
                     <span className={styles.legendColor} style={{ backgroundColor: status.color }}></span>
-                    <span style={{ width: '40px', fontWeight: 600, color: '#111827' }}>{Math.round(Math.random() * 50 + 10)}%</span>
+                    <span style={{ width: '40px', fontWeight: 600, color: '#111827' }}>{Math.round(((index + 1) * 37) % 50 + 10)}%</span>
                     <span>{status.name}</span>
                   </div>
                 ))}
