@@ -69,15 +69,18 @@ CREATE POLICY "Products are insertable by authenticated users" ON products FOR I
 CREATE POLICY "Products are updatable by authenticated users" ON products FOR UPDATE TO authenticated USING (true);
 CREATE POLICY "Products are deletable by authenticated users" ON products FOR DELETE TO authenticated USING (true);
 
--- Orders: Users can read their own orders. Anyone can insert (guest checkout). Admins can update.
+-- Orders: Users can read their own orders. Anyone can insert (guest checkout). Admins can update and view all.
 CREATE POLICY "Users can view their own orders" ON orders FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Authenticated users can view all orders" ON orders FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Anyone can create an order" ON orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Authenticated users can update orders" ON orders FOR UPDATE TO authenticated USING (true);
+CREATE POLICY "Authenticated users can delete orders" ON orders FOR DELETE TO authenticated USING (true);
 
--- Order Items: Viewable if you own the order. Anyone can insert during checkout.
+-- Order Items: Viewable if you own the order. Anyone can insert during checkout. Admins can view all.
 CREATE POLICY "Users can view their own order items" ON order_items FOR SELECT USING (
   EXISTS (SELECT 1 FROM orders WHERE orders.id = order_items.order_id AND orders.user_id = auth.uid())
 );
+CREATE POLICY "Authenticated users can view all order items" ON order_items FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Anyone can create order items" ON order_items FOR INSERT WITH CHECK (true);
 
 -- 7. Insert Initial Seed Data (Diversified Categories)
