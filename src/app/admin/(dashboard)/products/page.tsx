@@ -1,10 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
 import { ProductForm } from './ProductForm'
 import styles from './products.module.css'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Edit2 } from 'lucide-react'
 import { deleteProduct } from './actions'
+import Link from 'next/link'
+import { Button } from '@/components/ui/Button'
 
-export default async function ProductsPage() {
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ edit?: string }> }) {
+  const params = await searchParams;
+  const editId = params.edit;
+
   const supabase = await createClient()
   
   // Fetch products with their category details
@@ -24,6 +29,12 @@ export default async function ProductsPage() {
     .select('id, name')
     .order('name', { ascending: true })
 
+  let productToEdit = null;
+  if (editId) {
+    const { data } = await supabase.from('products').select('*').eq('id', editId).single();
+    productToEdit = data;
+  }
+
   return (
     <div className={styles.pageContainer}>
       <div className={styles.header}>
@@ -34,7 +45,14 @@ export default async function ProductsPage() {
       <div className={styles.content}>
         {/* Top/Left Area: Form */}
         <div className={styles.formSection}>
-          <ProductForm categories={categories || []} />
+          <ProductForm categories={categories || []} initialData={productToEdit} />
+          {productToEdit && (
+            <div style={{ marginTop: '1rem', textAlign: 'center' }}>
+              <Link href="/admin/products">
+                <Button variant="outline" type="button">Cancel Editing</Button>
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Bottom/Right Area: List */}
@@ -77,14 +95,19 @@ export default async function ProductsPage() {
                           </span>
                         </td>
                         <td className={styles.textRight}>
-                          <form action={async () => {
-                            'use server'
-                            await deleteProduct(prod.id)
-                          }}>
-                            <button type="submit" className={styles.deleteBtn} title="Delete Product">
-                              <Trash2 size={18} />
-                            </button>
-                          </form>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'flex-end' }}>
+                            <Link href={`/admin/products?edit=${prod.id}`} className={styles.editBtn} title="Edit Product" style={{ color: '#3b82f6', background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem' }}>
+                              <Edit2 size={18} />
+                            </Link>
+                            <form action={async () => {
+                              'use server'
+                              await deleteProduct(prod.id)
+                            }}>
+                              <button type="submit" className={styles.deleteBtn} title="Delete Product">
+                                <Trash2 size={18} />
+                              </button>
+                            </form>
+                          </div>
                         </td>
                       </tr>
                     ))}
