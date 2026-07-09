@@ -186,24 +186,27 @@ export default async function AdminDashboardOverview() {
   }
 
   const governorateNames = ["Ariana", "Beja", "Ben Arous", "Bizerte", "Gabès", "Gafsa", "Jendouba", "Kairouan", "Kasserine", "Kebili", "Kef", "Mahdia", "Manouba", "Mednine", "Monastir", "Nabeul", "Sfax", "Sidi Bouzid", "Siliana", "Sousse", "Tataouine", "Tozeur", "Tunis", "Zaghouan"]
-  const salesByGov: Record<string, { sales: number, ordersCount: number }> = {}
+  const salesByGov: Record<string, { sales: number, ordersCount: number, productsCount: number }> = {}
   governorateNames.forEach(gov => {
-    salesByGov[gov] = { sales: 0, ordersCount: 0 }
+    salesByGov[gov] = { sales: 0, ordersCount: 0, productsCount: 0 }
   })
 
   orders.forEach(order => {
     if (order.status === 'delivered') {
       const city = (order.shipping_address as any)?.city || 'Unknown'
-      if (!salesByGov[city]) salesByGov[city] = { sales: 0, ordersCount: 0 }
+      if (!salesByGov[city]) salesByGov[city] = { sales: 0, ordersCount: 0, productsCount: 0 }
       salesByGov[city].sales += Number(order.total_amount)
       salesByGov[city].ordersCount += 1
+      const pCount = order.order_items?.reduce((sum: number, item: any) => sum + (item.quantity || 1), 0) || 0
+      salesByGov[city].productsCount += pCount
     }
   })
   
   const governorateSales = Object.keys(salesByGov).map(gov => ({
     name: gov,
     sales: salesByGov[gov].sales,
-    orders: salesByGov[gov].ordersCount
+    orders: salesByGov[gov].ordersCount,
+    products: salesByGov[gov].productsCount
   })).sort((a, b) => b.sales - a.sales)
 
   return (

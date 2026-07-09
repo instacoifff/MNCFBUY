@@ -50,7 +50,7 @@ interface DashboardChartsProps {
   visitsToday?: number
   uniqueBuyersCount?: number
   products?: any[]
-  governorateSales?: { name: string, sales: number, orders: number }[]
+  governorateSales?: { name: string, sales: number, orders: number, products: number }[]
 }
 
 const CustomAreaTooltip = ({ active, payload, label }: any) => {
@@ -416,7 +416,7 @@ export default function DashboardCharts({
                     <div key={i} style={{ display: 'flex', alignItems: 'center', fontSize: '0.8125rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, overflow: 'hidden' }}>
                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getGovernorateColor(gov.name), flexShrink: 0 }} />
-                        <span style={{ color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gov.name} <span style={{ fontSize: '10px', color: '#94a3b8' }}>({gov.orders})</span></span>
+                        <span style={{ color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{gov.name} <span style={{ fontSize: '10px', color: '#94a3b8' }}>({gov.orders} orders | {gov.products} items)</span></span>
                       </div>
                       <span style={{ fontWeight: 600, color: '#0f172a', width: '135px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatCurrency(gov.sales)}</span>
                       <span style={{ color: '#94a3b8', width: '32px', textAlign: 'right' }}>{Math.round((gov.sales / totalGovernorateSales) * 100)}%</span>
