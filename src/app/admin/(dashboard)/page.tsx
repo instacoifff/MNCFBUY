@@ -92,7 +92,7 @@ export default async function AdminDashboardOverview() {
   // 4. Top Products & Categories Data
   const { data: orderItems } = await supabase
     .from('order_items')
-    .select('quantity, products(title, categories(name))')
+    .select('quantity, price_at_time, products(title, categories(name))')
 
   let productSalesTotal = 0
   const productSales = new Map<string, number>()
@@ -104,20 +104,26 @@ export default async function AdminDashboardOverview() {
       const title = product?.title || 'Unknown'
       const categoryName = product?.categories?.name || 'Uncategorized'
       const qty = item.quantity
+      const revenue = qty * (item.price_at_time || 0)
 
-      productSales.set(title, (productSales.get(title) || 0) + qty)
+      productSales.set(title, (productSales.get(title) || 0) + revenue)
       categorySales.set(categoryName, (categorySales.get(categoryName) || 0) + qty)
-      productSalesTotal += qty
+      productSalesTotal += revenue
     })
   }
 
-  const topProducts = Array.from(productSales, ([name, sales]) => ({
+  const colors = ['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4', '#84cc16']
+
+  const topProducts = Array.from(productSales, ([name, revenue]) => ({
     name,
-    sales,
-    percentage: Math.round((sales / (productSalesTotal || 1)) * 100),
+    sales: revenue,
+    percentage: Math.round((revenue / (productSalesTotal || 1)) * 100),
   }))
     .sort((a, b) => b.sales - a.sales)
-    .slice(0, 5)
+    .map((item, index) => ({
+      ...item,
+      color: colors[index % colors.length]
+    }))
 
   const topCategories = Array.from(categorySales, ([name, sales]) => ({
     name,

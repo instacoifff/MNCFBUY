@@ -549,37 +549,38 @@ export default function DashboardCharts({
             </div>
           </div>
 
-          {/* Sales by Channel */}
+          {/* Top Products */}
           <div style={{ 
             background: '#ffffff', 
             borderRadius: '12px', 
             border: '1px solid #e2e8f0',
             padding: '1.5rem',
             boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-            flex: 1
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Sales by Channel</h3>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Top Products</h3>
               <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#64748b', cursor: 'pointer' }}>View report</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {channelData.map((ch, i) => (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', maxHeight: '300px', paddingRight: '0.5rem' }}>
+              {productSalesData.map((ch: any, i: number) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
-                    <div style={{ width: '16px', height: '16px', backgroundColor: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {/* Placeholder for small icons */}
-                      <div style={{ width: '8px', height: '8px', border: `1px solid ${ch.color}`, borderRadius: '2px' }}/>
+                    <div style={{ width: '16px', height: '16px', backgroundColor: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <div style={{ width: '8px', height: '8px', border: `1px solid ${ch.color || '#10b981'}`, borderRadius: '2px' }}/>
                     </div>
-                    <span style={{ color: '#0f172a', fontWeight: 500 }}>{ch.name}</span>
+                    <span style={{ color: '#0f172a', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{ch.name}</span>
                   </div>
                   
                   <div style={{ flex: 1, height: '4px', backgroundColor: '#f1f5f9', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ width: `${ch.percentage}%`, height: '100%', backgroundColor: ch.color, borderRadius: '2px' }} />
+                    <div style={{ width: `${ch.percentage}%`, height: '100%', backgroundColor: ch.color || '#10b981', borderRadius: '2px' }} />
                   </div>
                   
-                  <div style={{ width: '70px', textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
-                    {formatPrice(ch.value)}
+                  <div style={{ width: '85px', textAlign: 'right', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>
+                    {formatPrice(ch.sales || ch.value)}
                   </div>
                   <div style={{ width: '40px', textAlign: 'right', color: '#64748b' }}>
                     {ch.percentage}%
