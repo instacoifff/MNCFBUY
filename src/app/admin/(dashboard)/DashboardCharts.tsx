@@ -582,9 +582,6 @@ export default function DashboardCharts({
                   <div style={{ width: '85px', textAlign: 'right', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>
                     {formatPrice(ch.sales || ch.value)}
                   </div>
-                  <div style={{ width: '40px', textAlign: 'right', color: '#64748b' }}>
-                    {ch.percentage}%
-                  </div>
                 </div>
               ))}
             </div>
