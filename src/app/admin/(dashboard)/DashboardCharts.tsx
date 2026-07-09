@@ -16,6 +16,7 @@ import {
 import Image from 'next/image'
 import TunisiaMap from '@svg-maps/tunisia'
 import type { StatusDataItem, RankedItem } from '@/lib/types'
+import { formatPrice } from '@/lib/utils'
 import styles from './dashboard.module.css'
 
 // Mock Data for new visuals
@@ -64,7 +65,7 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
       }}>
         <p style={{ margin: '0 0 0.25rem', fontSize: '0.75rem', color: '#64748b' }}>{label} 2025</p>
         <p style={{ margin: 0, fontWeight: 700, color: '#0f172a', fontSize: '1.125rem' }}>
-          ${payload[0].value.toLocaleString(undefined, { minimumFractionDigits: 0 })}
+          {formatPrice(payload[0].value)}
         </p>
       </div>
     )
@@ -72,7 +73,7 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
   return null
 }
 
-const formatCurrency = (val: number) => `$${val.toLocaleString()}`
+const formatCurrency = (val: number) => formatPrice(val)
 
 export default function DashboardCharts({
   statusData,
@@ -156,7 +157,7 @@ export default function DashboardCharts({
             <div>
               <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 0.5rem' }}>Revenue Overview</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>$1,248,560</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>{formatPrice(1248560)}</span>
                 <span style={{ fontSize: '0.875rem', color: '#10b981', fontWeight: 600 }}>+ 12.5%</span>
                 <span style={{ fontSize: '0.75rem', color: '#64748b' }}>vs Apr 25 - May 24</span>
               </div>
@@ -197,7 +198,7 @@ export default function DashboardCharts({
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fill: '#64748b', fontSize: 12 }}
-                  tickFormatter={(val) => `$${val >= 1000000 ? (val/1000000).toFixed(1) + 'M' : val >= 1000 ? (val/1000) + 'K' : val}`}
+                  tickFormatter={(val) => `${val >= 1000000 ? (val/1000000).toFixed(1) + 'M' : val >= 1000 ? (val/1000) + 'K' : val} TND`}
                 />
                 <Tooltip content={<CustomAreaTooltip />} cursor={{ stroke: '#10b981', strokeWidth: 1, strokeDasharray: '3 3' }} />
                 <Area 
@@ -251,7 +252,7 @@ export default function DashboardCharts({
                 else if (ro.status === 'cancelled') { statColor = '#ef4444'; statBg = 'rgba(239, 68, 68, 0.1)' }
                 else if (ro.status === 'confirmed') { statColor = '#3b82f6'; statBg = 'rgba(59, 130, 246, 0.1)' }
                 
-                const amt = `$${Number(ro.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                const amt = formatPrice(Number(ro.total_amount))
                 const date = new Date(ro.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
                 
                 const city = ro.shipping_address?.city || 'Unknown'
@@ -578,7 +579,7 @@ export default function DashboardCharts({
                   </div>
                   
                   <div style={{ width: '70px', textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
-                    ${ch.value.toLocaleString()}
+                    {formatPrice(ch.value)}
                   </div>
                   <div style={{ width: '40px', textAlign: 'right', color: '#64748b' }}>
                     {ch.percentage}%
