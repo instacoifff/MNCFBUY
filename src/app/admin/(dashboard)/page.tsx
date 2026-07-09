@@ -163,13 +163,20 @@ export default async function AdminDashboardOverview() {
 
   const vsDateText = 'vs Apr 25 - May 24'
 
+  const getOrdinal = (n: number) => {
+    const s = ["th", "st", "nd", "rd"];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
   const customerCounts: Record<string, number> = {}
   // orders are sorted descending by date. If we iterate from end to start (oldest to newest):
   for (let i = orders.length - 1; i >= 0; i--) {
     const phone = orders[i].contact_phone || 'guest'
     customerCounts[phone] = (customerCounts[phone] || 0) + 1
     const order = orders[i] as any
-    order.customer_status = customerCounts[phone] === 1 ? 'First Time' : `Returning (${customerCounts[phone]}nd Time)`
+    const count = customerCounts[phone]
+    order.customer_status = count === 1 ? 'First Time' : `${getOrdinal(count)} Time`
   }
 
   return (
