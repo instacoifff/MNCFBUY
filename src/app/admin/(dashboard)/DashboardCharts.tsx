@@ -248,15 +248,15 @@ export function DashboardCharts({
                 <tr key={i} style={{ borderBottom: i === 4 ? 'none' : '1px solid #f1f5f9', fontSize: '0.875rem' }}>
                   <td style={{ padding: '1rem 0', fontWeight: 600, color: '#0f172a' }}>#{ro.id.split('-')[0]}</td>
                   
-                  <td style={{ padding: '1rem 0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
-                         <Image src={`https://ui-avatars.com/api/?name=${name}&background=random`} width={24} height={24} alt={name} />
+                  <td style={{ padding: '1rem 0', minWidth: '200px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#e2e8f0', overflow: 'hidden', flexShrink: 0, border: '1px solid #e2e8f0' }}>
+                         <Image src={`https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=72`} width={36} height={36} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.8125rem' }}>{name}</span>
-                        <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{phone}</span>
-                        {email && <span style={{ color: '#64748b', fontSize: '0.7rem' }}>{email}</span>}
+                      <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                        <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.875rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
+                        <span style={{ color: '#64748b', fontSize: '0.75rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{phone}</span>
+                        {email && <span style={{ color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{email}</span>}
                       </div>
                     </div>
                   </td>
