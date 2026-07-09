@@ -3,6 +3,8 @@ import styles from './dashboard.module.css'
 import { DashboardCharts } from './DashboardCharts'
 import { format, subDays, subMonths, isAfter, startOfMonth, endOfMonth, format as dateFnsFormat } from 'date-fns'
 import { formatPrice } from '@/lib/utils'
+import { KpiCard } from './KpiCard'
+import { DollarSign, ShoppingBag, TrendingUp, UserCheck, ShieldCheck } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,12 +13,8 @@ export default async function AdminDashboardOverview() {
 
   // 1. Core Metrics Data Fetch
   const [
-    { count: totalProducts },
-    { count: outOfStockProducts },
     { data: allOrders }
   ] = await Promise.all([
-    supabase.from('products').select('*', { count: 'exact', head: true }),
-    supabase.from('products').select('*', { count: 'exact', head: true }).lte('stock', 0),
     supabase.from('orders').select('id, total_amount, status, created_at, contact_email').order('created_at', { ascending: false })
   ])
 
@@ -53,14 +51,25 @@ export default async function AdminDashboardOverview() {
     return ((current - prev) / prev) * 100
   }
 
-  const metrics = {
-    revenueGrowth: calcGrowth(currentRevenue, prevRevenue),
-    ordersGrowth: calcGrowth(currentOrders.length, prevOrders.length),
-    customersGrowth: calcGrowth(
-      new Set(currentOrders.map(o => o.contact_email)).size,
-      new Set(prevOrders.map(o => o.contact_email)).size
-    ),
-  }
+  const revenueGrowth = calcGrowth(currentRevenue, prevRevenue)
+  const ordersGrowth = calcGrowth(currentOrders.length, prevOrders.length)
+  const currentAov = currentDelivered.length > 0 ? currentRevenue / currentDelivered.length : 0
+  const prevAov = prevDelivered.length > 0 ? prevRevenue / prevDelivered.length : 0
+  const aovGrowth = calcGrowth(currentAov, prevAov)
+  
+  const currentCust = new Set(currentOrders.map(o => o.contact_email)).size
+  const prevCust = new Set(prevOrders.map(o => o.contact_email)).size
+  const returningCustomersGrowth = calcGrowth(currentCust, prevCust)
+  
+  // Mock Conversion Rate Growth for visual completeness
+  const conversionGrowth = 0.6
+
+  // Generate sparkline mock data (since we don't have daily analytics over 30 days stored easily, we'll generate subtle curves)
+  const sparklineRevenue = [10, 15, 12, 18, 16, 22, 28, 25, 30]
+  const sparklineOrders = [5, 8, 10, 7, 12, 11, 15, 14, 18]
+  const sparklineAov = [40, 45, 42, 48, 50, 46, 52, 54, 53]
+  const sparklineConv = [2.1, 2.3, 2.5, 2.4, 2.7, 3.0, 3.2, 3.1, 3.4]
+  const sparklineCust = [2, 4, 3, 5, 6, 8, 7, 9, 12]
 
   // 3. Status Breakdown Data
   const statusCounts = orders.reduce((acc: Record<string, number>, order) => {
@@ -114,14 +123,14 @@ export default async function AdminDashboardOverview() {
     .sort((a, b) => b.sales - a.sales)
     .slice(0, 5)
 
-  // 5. Revenue & Orders Over Time (Rolling 6 Months)
+  // 5. Revenue & Orders Over Time (Rolling 12 Months to match Northbay)
   const rollingMonthsData: { date: string, start: Date, end: Date, revenue: number, orders: number }[] = []
   const today = new Date()
   
-  for (let i = 5; i >= 0; i--) {
+  for (let i = 11; i >= 0; i--) {
     const targetDate = subMonths(today, i)
     rollingMonthsData.push({
-      date: dateFnsFormat(targetDate, 'MMM yyyy'),
+      date: dateFnsFormat(targetDate, 'MMM'),
       start: startOfMonth(targetDate),
       end: endOfMonth(targetDate),
       revenue: 0,
@@ -142,64 +151,73 @@ export default async function AdminDashboardOverview() {
     }
   })
 
-  // Format explicitly for Recharts
   const revenueData = rollingMonthsData.map(m => ({
     date: m.date,
     revenue: m.revenue,
     orders: m.orders
   }))
 
+  const vsDateText = 'vs Apr 25 - May 24'
+
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Dashboard Overview</h1>
-        <p className={styles.subtitle}>Welcome back. Here's your enterprise summary.</p>
-      </div>
-
-      {/* Metrics Row */}
+      {/* 5 KPI Cards Row */}
       <div className={styles.metricsGrid}>
-        <div className={styles.metricCard}>
-          <div className={styles.metricBottom}>
-            <h3 className={styles.metricTitle}>Total Revenue</h3>
-            <span className={`${styles.growthBadge} ${metrics.revenueGrowth >= 0 ? styles.growthPositive : styles.growthNegative}`}>
-              {metrics.revenueGrowth >= 0 ? '↑' : '↓'} {Math.abs(metrics.revenueGrowth).toFixed(1)}%
-            </span>
-          </div>
-          <p className={styles.metricValue}>{formatPrice(totalRevenue)}</p>
-          <span className={styles.metricSubtitle}>From delivered orders</span>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricBottom}>
-            <h3 className={styles.metricTitle}>Total Orders</h3>
-            <span className={`${styles.growthBadge} ${metrics.ordersGrowth >= 0 ? styles.growthPositive : styles.growthNegative}`}>
-              {metrics.ordersGrowth >= 0 ? '↑' : '↓'} {Math.abs(metrics.ordersGrowth).toFixed(1)}%
-            </span>
-          </div>
-          <p className={styles.metricValue}>{orders.length}</p>
-          <span className={styles.metricSubtitle}>Across all statuses</span>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricBottom}>
-            <h3 className={styles.metricTitle}>Customers</h3>
-            <span className={`${styles.growthBadge} ${metrics.customersGrowth >= 0 ? styles.growthPositive : styles.growthNegative}`}>
-              {metrics.customersGrowth >= 0 ? '↑' : '↓'} {Math.abs(metrics.customersGrowth).toFixed(1)}%
-            </span>
-          </div>
-          <p className={styles.metricValue}>{totalCustomers}</p>
-          <span className={styles.metricSubtitle}>Unique buyers</span>
-        </div>
-
-        <div className={styles.metricCard}>
-          <div className={styles.metricBottom}>
-            <h3 className={styles.metricTitle}>Inventory Alerts</h3>
-          </div>
-          <p className={styles.metricValue} style={{ color: outOfStockProducts ? 'var(--color-error)' : 'inherit' }}>
-            {outOfStockProducts || 0}
-          </p>
-          <span className={styles.metricSubtitle}>Products out of stock</span>
-        </div>
+        <KpiCard 
+          title="Total Revenue"
+          value={formatPrice(totalRevenue)}
+          growth={Number(revenueGrowth.toFixed(1))}
+          vsText={vsDateText}
+          Icon={DollarSign}
+          iconColor="#10b981"
+          iconBg="rgba(16, 185, 129, 0.1)"
+          sparklineData={sparklineRevenue}
+          sparklineColor="#10b981"
+        />
+        <KpiCard 
+          title="Orders"
+          value={orders.length.toLocaleString()}
+          growth={Number(ordersGrowth.toFixed(1))}
+          vsText={vsDateText}
+          Icon={ShoppingBag}
+          iconColor="#10b981"
+          iconBg="rgba(16, 185, 129, 0.1)"
+          sparklineData={sparklineOrders}
+          sparklineColor="#10b981"
+        />
+        <KpiCard 
+          title="Average Order Value"
+          value={formatPrice(aov)}
+          growth={Number(aovGrowth.toFixed(1))}
+          vsText={vsDateText}
+          Icon={TrendingUp}
+          iconColor="#8b5cf6"
+          iconBg="rgba(139, 92, 246, 0.1)"
+          sparklineData={sparklineAov}
+          sparklineColor="#8b5cf6"
+        />
+        <KpiCard 
+          title="Conversion Rate"
+          value="3.42%" // Mocked as requested
+          growth={conversionGrowth}
+          vsText={vsDateText}
+          Icon={UserCheck}
+          iconColor="#8b5cf6"
+          iconBg="rgba(139, 92, 246, 0.1)"
+          sparklineData={sparklineConv}
+          sparklineColor="#8b5cf6"
+        />
+        <KpiCard 
+          title="Returning Customers"
+          value={totalCustomers.toLocaleString()}
+          growth={Number(returningCustomersGrowth.toFixed(1))}
+          vsText={vsDateText}
+          Icon={ShieldCheck}
+          iconColor="#10b981"
+          iconBg="rgba(16, 185, 129, 0.1)"
+          sparklineData={sparklineCust}
+          sparklineColor="#10b981"
+        />
       </div>
 
       <DashboardCharts
@@ -207,6 +225,7 @@ export default async function AdminDashboardOverview() {
         productSalesData={topProducts}
         categorySalesData={topCategories}
         revenueData={revenueData}
+        recentOrders={orders.slice(0, 5)}
       />
     </div>
   )
