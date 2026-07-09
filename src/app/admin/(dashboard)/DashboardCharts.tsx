@@ -45,6 +45,9 @@ interface DashboardChartsProps {
   categorySalesData: RankedItem[]
   revenueData: RevenueDataPoint[]
   recentOrders: any[]
+  visitsToday?: number
+  uniqueBuyersCount?: number
+  products?: any[]
 }
 
 const CustomAreaTooltip = ({ active, payload, label }: any) => {
@@ -74,7 +77,10 @@ export function DashboardCharts({
   productSalesData,
   categorySalesData,
   revenueData,
-  recentOrders
+  recentOrders,
+  visitsToday = 0,
+  uniqueBuyersCount = 0,
+  products = []
 }: DashboardChartsProps) {
   
   // Custom mock retention data matching screenshot
@@ -101,6 +107,18 @@ export function DashboardCharts({
         { date: 'Dec', revenue: 1600000 },
       ]
     : revenueData
+    
+  // Live Visitors vs Buyers Data
+  const visitorTotal = visitsToday + uniqueBuyersCount
+  const visitorsData = [
+    { name: 'Live Visitors Today', value: visitsToday || 1, color: '#f59e0b' },
+    { name: 'Unique Buyers', value: uniqueBuyersCount, color: '#10b981' }
+  ]
+  const buyerConversion = visitorTotal > 0 ? Math.round((uniqueBuyersCount / visitorTotal) * 100) : 0
+
+  // Calculate Stock Analytics
+  const fullStockValue = products.reduce((sum, p) => sum + (p.price * p.stock), 0)
+  const lowStockProducts = products.filter(p => p.stock < 10).sort((a,b) => a.stock - b.stock)
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
@@ -351,6 +369,67 @@ export function DashboardCharts({
             </div>
         </div>
 
+        {/* Stock Analytics & Alerts */}
+        <div style={{ 
+            background: '#ffffff', 
+            borderRadius: '12px', 
+            border: '1px solid #e2e8f0',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            gridColumn: '1 / -1' // Span full width of bottom grid
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: 0 }}>Stock & Inventory Analytics</h3>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+              
+              {/* Left Side: Stock Value */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>Total Stock Value (Unsold)</div>
+                   <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#0f172a' }}>{formatCurrency(fullStockValue)}</div>
+                </div>
+                
+                <div style={{ display: 'flex', gap: '1rem' }}>
+                   <div style={{ flex: 1, padding: '0.75rem', background: 'rgba(16, 185, 129, 0.05)', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                     <div style={{ fontSize: '0.7rem', color: '#10b981', marginBottom: '0.25rem' }}>Delivered Value</div>
+                     <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#0f172a' }}>
+                       {formatCurrency(statusData.find(s => s.name === 'Delivered')?.value || 0)}
+                     </div>
+                   </div>
+                   <div style={{ flex: 1, padding: '0.75rem', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+                     <div style={{ fontSize: '0.7rem', color: '#ef4444', marginBottom: '0.25rem' }}>Cancelled Value</div>
+                     <div style={{ fontSize: '1.125rem', fontWeight: 600, color: '#0f172a' }}>
+                        {formatCurrency(statusData.find(s => s.name === 'Cancelled')?.value || 0)}
+                     </div>
+                   </div>
+                </div>
+              </div>
+
+              {/* Right Side: Low Stock Alerts */}
+              <div>
+                <h4 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#0f172a', margin: '0 0 1rem 0' }}>Low Stock Alerts</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '200px', overflowY: 'auto' }}>
+                  {lowStockProducts.length > 0 ? lowStockProducts.map(p => (
+                    <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem', background: p.stock === 0 ? 'rgba(239, 68, 68, 0.05)' : '#ffffff', border: `1px solid ${p.stock === 0 ? '#fca5a5' : '#e2e8f0'}`, borderRadius: '6px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {p.image_url && <Image src={p.image_url} alt={p.title} width={24} height={24} style={{ borderRadius: '4px' }}/>}
+                        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#0f172a' }}>{p.title}</span>
+                      </div>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.5rem', borderRadius: '4px', background: p.stock === 0 ? '#ef4444' : '#f59e0b', color: '#fff' }}>
+                        {p.stock === 0 ? 'Out of Stock' : `${p.stock} left`}
+                      </span>
+                    </div>
+                  )) : (
+                    <div style={{ fontSize: '0.875rem', color: '#64748b' }}>Inventory is healthy. No low stock items.</div>
+                  )}
+                </div>
+              </div>
+
+            </div>
+        </div>
+
       </div>
         </div>
 
@@ -450,6 +529,106 @@ export function DashboardCharts({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Visitors vs Buyers */}
+          <div style={{ 
+            background: '#ffffff', 
+            borderRadius: '12px', 
+            border: '1px solid #e2e8f0',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            flex: 1
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 1.5rem' }}>Live Visitors vs Buyers</h3>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={visitorsData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={60}
+                      paddingAngle={2}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {visitorsData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ 
+                  position: 'absolute', 
+                  top: '50%', 
+                  left: '50%', 
+                  transform: 'translate(-50%, -50%)',
+                  textAlign: 'center'
+                }}>
+                  <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>{buyerConversion}%</div>
+                  <div style={{ fontSize: '0.625rem', color: '#64748b' }}>Buyer<br/>Rate</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {visitorsData.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
+                    <span style={{ fontWeight: 600, color: '#0f172a', width: '30px' }}>{item.value}</span>
+                    <span style={{ color: '#64748b' }}>{item.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Order Status Breakdown */}
+          <div style={{ 
+            background: '#ffffff', 
+            borderRadius: '12px', 
+            border: '1px solid #e2e8f0',
+            padding: '1.5rem',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            flex: 1
+          }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#0f172a', margin: '0 0 1.5rem' }}>Order Status Overview</h3>
+            
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ position: 'relative', width: '120px', height: '120px' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={statusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={45}
+                      outerRadius={60}
+                      paddingAngle={2}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {statusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                {statusData.map((item, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
+                    <span style={{ fontWeight: 600, color: '#0f172a', width: '20px' }}>{item.value}</span>
+                    <span style={{ color: '#64748b', textTransform: 'capitalize' }}>{item.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           

@@ -13,9 +13,13 @@ export default async function AdminDashboardOverview() {
 
   // 1. Core Metrics Data Fetch
   const [
-    { data: allOrders }
+    { data: allOrders },
+    { data: allProducts },
+    { data: todayVisits }
   ] = await Promise.all([
-    supabase.from('orders').select('id, total_amount, status, created_at, contact_email').order('created_at', { ascending: false })
+    supabase.from('orders').select('id, total_amount, status, created_at, contact_email, contact_phone').order('created_at', { ascending: false }),
+    supabase.from('products').select('id, title, price, stock, image_url'),
+    supabase.from('site_visits').select('id, created_at').gte('created_at', new Date(new Date().setHours(0,0,0,0)).toISOString())
   ])
 
   const orders = allOrders || []
@@ -221,6 +225,9 @@ export default async function AdminDashboardOverview() {
         categorySalesData={topCategories}
         revenueData={revenueData}
         recentOrders={orders.slice(0, 5)}
+        visitsToday={todayVisits?.length || 0}
+        uniqueBuyersCount={new Set(orders.map(o => o.contact_phone).filter(Boolean)).size}
+        products={allProducts || []}
       />
     </div>
   )
