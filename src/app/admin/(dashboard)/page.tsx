@@ -4,7 +4,7 @@ import { DashboardCharts } from './DashboardCharts'
 import { format, subDays, subMonths, isAfter, startOfMonth, endOfMonth, format as dateFnsFormat } from 'date-fns'
 import { formatPrice } from '@/lib/utils'
 import { KpiCard } from './KpiCard'
-import { DollarSign, ShoppingBag, TrendingUp, UserCheck, ShieldCheck } from 'lucide-react'
+import { DollarSign, Lock, Percent, User, Box } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
@@ -178,7 +178,7 @@ export default async function AdminDashboardOverview() {
           value={orders.length.toLocaleString()}
           growth={Number(ordersGrowth.toFixed(1))}
           vsText={vsDateText}
-          iconNode={<ShoppingBag size={14} color="#10b981" />}
+          iconNode={<Lock size={14} color="#10b981" />}
           iconBg="rgba(16, 185, 129, 0.1)"
           sparklineData={sparklineOrders}
           sparklineColor="#10b981"
@@ -188,7 +188,7 @@ export default async function AdminDashboardOverview() {
           value={formatPrice(aov)}
           growth={Number(aovGrowth.toFixed(1))}
           vsText={vsDateText}
-          iconNode={<TrendingUp size={14} color="#8b5cf6" />}
+          iconNode={<Percent size={14} color="#8b5cf6" />}
           iconBg="rgba(139, 92, 246, 0.1)"
           sparklineData={sparklineAov}
           sparklineColor="#8b5cf6"
@@ -198,7 +198,7 @@ export default async function AdminDashboardOverview() {
           value="3.42%" // Mocked as requested
           growth={conversionGrowth}
           vsText={vsDateText}
-          iconNode={<UserCheck size={14} color="#8b5cf6" />}
+          iconNode={<User size={14} color="#8b5cf6" />}
           iconBg="rgba(139, 92, 246, 0.1)"
           sparklineData={sparklineConv}
           sparklineColor="#8b5cf6"
@@ -208,7 +208,7 @@ export default async function AdminDashboardOverview() {
           value={totalCustomers.toLocaleString()}
           growth={Number(returningCustomersGrowth.toFixed(1))}
           vsText={vsDateText}
-          iconNode={<ShieldCheck size={14} color="#10b981" />}
+          iconNode={<Box size={14} color="#10b981" />}
           iconBg="rgba(16, 185, 129, 0.1)"
           sparklineData={sparklineCust}
           sparklineColor="#10b981"

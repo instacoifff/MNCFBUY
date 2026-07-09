@@ -1,7 +1,8 @@
 'use client'
 
 import React from 'react'
-import { LineChart, Line, ResponsiveContainer } from 'recharts'
+import { AreaChart, Area, ResponsiveContainer } from 'recharts'
+import { useId } from 'react'
 import { LucideIcon } from 'lucide-react'
 
 interface KpiCardProps {
@@ -29,6 +30,7 @@ export function KpiCard({
   const data = sparklineData.map((val, i) => ({ value: val, index: i }))
   
   const isPositive = growth >= 0
+  const gradientId = useId()
 
   return (
     <div style={{
@@ -73,18 +75,25 @@ export function KpiCard({
         </div>
       </div>
 
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', zIndex: 1, opacity: 0.6 }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '60px', zIndex: 1, opacity: 0.8 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data}>
-            <Line 
+          <AreaChart data={data} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={sparklineColor} stopOpacity={0.25} />
+                <stop offset="95%" stopColor={sparklineColor} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <Area 
               type="monotone" 
               dataKey="value" 
               stroke={sparklineColor} 
               strokeWidth={2} 
-              dot={false}
+              fillOpacity={1}
+              fill={`url(#${gradientId})`}
               isAnimationActive={false}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </div>
