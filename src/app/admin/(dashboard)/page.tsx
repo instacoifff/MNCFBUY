@@ -87,7 +87,7 @@ export default async function AdminDashboardOverview() {
     { name: 'Confirmed', value: statusCounts['confirmed'] || 0, color: '#3b82f6' },
     { name: 'Shipped', value: statusCounts['shipped'] || 0, color: '#8b5cf6' },
     { name: 'Cancelled', value: statusCounts['cancelled'] || 0, color: '#ef4444' },
-  ].filter((s) => s.value > 0)
+  ]
 
   // 4. Top Products & Categories Data
   const { data: orderItems } = await supabase

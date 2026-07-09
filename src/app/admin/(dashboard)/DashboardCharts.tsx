@@ -87,11 +87,10 @@ export default function DashboardCharts({
   governorateSales = []
 }: DashboardChartsProps) {
   
-  // Custom mock retention data matching screenshot
+  // Custom mock retention data
   const retentionData = [
     { name: 'Returning', value: 63, color: '#10b981' },
-    { name: 'At Risk', value: 24, color: '#f59e0b' },
-    { name: 'New', value: 13, color: '#8b5cf6' },
+    { name: 'New', value: 37, color: '#8b5cf6' },
   ]
 
   const salesRevenueDelivered = Math.round(revenueData.reduce((acc, val) => acc + val.revenue, 0))
@@ -626,7 +625,7 @@ export default function DashboardCharts({
                   {statusData.map((item, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem' }}>
                       <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
-                      <span style={{ fontWeight: 600, color: '#0f172a', width: '20px' }}>{item.value}</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a', width: '30px' }}>{item.value}</span>
                       <span style={{ color: '#64748b', textTransform: 'capitalize' }}>{item.name}</span>
                     </div>
                   ))}
