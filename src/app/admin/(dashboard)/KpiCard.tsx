@@ -9,8 +9,7 @@ interface KpiCardProps {
   value: string | number
   growth: number
   vsText: string
-  Icon: LucideIcon
-  iconColor: string
+  iconNode: React.ReactNode
   iconBg: string
   sparklineData: number[]
   sparklineColor: string
@@ -21,8 +20,7 @@ export function KpiCard({
   value,
   growth,
   vsText,
-  Icon,
-  iconColor,
+  iconNode,
   iconBg,
   sparklineData,
   sparklineColor
@@ -56,7 +54,7 @@ export function KpiCard({
           alignItems: 'center',
           justifyContent: 'center'
         }}>
-          <Icon size={14} color={iconColor} />
+          {iconNode}
         </div>
       </div>
       

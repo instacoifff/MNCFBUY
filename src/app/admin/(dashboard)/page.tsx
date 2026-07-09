@@ -168,8 +168,7 @@ export default async function AdminDashboardOverview() {
           value={formatPrice(totalRevenue)}
           growth={Number(revenueGrowth.toFixed(1))}
           vsText={vsDateText}
-          Icon={DollarSign}
-          iconColor="#10b981"
+          iconNode={<DollarSign size={14} color="#10b981" />}
           iconBg="rgba(16, 185, 129, 0.1)"
           sparklineData={sparklineRevenue}
           sparklineColor="#10b981"
@@ -179,8 +178,7 @@ export default async function AdminDashboardOverview() {
           value={orders.length.toLocaleString()}
           growth={Number(ordersGrowth.toFixed(1))}
           vsText={vsDateText}
-          Icon={ShoppingBag}
-          iconColor="#10b981"
+          iconNode={<ShoppingBag size={14} color="#10b981" />}
           iconBg="rgba(16, 185, 129, 0.1)"
           sparklineData={sparklineOrders}
           sparklineColor="#10b981"
@@ -190,8 +188,7 @@ export default async function AdminDashboardOverview() {
           value={formatPrice(aov)}
           growth={Number(aovGrowth.toFixed(1))}
           vsText={vsDateText}
-          Icon={TrendingUp}
-          iconColor="#8b5cf6"
+          iconNode={<TrendingUp size={14} color="#8b5cf6" />}
           iconBg="rgba(139, 92, 246, 0.1)"
           sparklineData={sparklineAov}
           sparklineColor="#8b5cf6"
@@ -201,8 +198,7 @@ export default async function AdminDashboardOverview() {
           value="3.42%" // Mocked as requested
           growth={conversionGrowth}
           vsText={vsDateText}
-          Icon={UserCheck}
-          iconColor="#8b5cf6"
+          iconNode={<UserCheck size={14} color="#8b5cf6" />}
           iconBg="rgba(139, 92, 246, 0.1)"
           sparklineData={sparklineConv}
           sparklineColor="#8b5cf6"
@@ -212,8 +208,7 @@ export default async function AdminDashboardOverview() {
           value={totalCustomers.toLocaleString()}
           growth={Number(returningCustomersGrowth.toFixed(1))}
           vsText={vsDateText}
-          Icon={ShieldCheck}
-          iconColor="#10b981"
+          iconNode={<ShieldCheck size={14} color="#10b981" />}
           iconBg="rgba(16, 185, 129, 0.1)"
           sparklineData={sparklineCust}
           sparklineColor="#10b981"
