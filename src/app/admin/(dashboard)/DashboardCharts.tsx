@@ -568,7 +568,7 @@ export default function DashboardCharts({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', overflowY: 'auto', maxHeight: '300px', paddingRight: '0.5rem' }}>
               {productSalesData.map((ch: any, i: number) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '120px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '220px' }}>
                     <div style={{ width: '16px', height: '16px', backgroundColor: '#f1f5f9', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                       <div style={{ width: '8px', height: '8px', border: `1px solid ${ch.color || '#10b981'}`, borderRadius: '2px' }}/>
                     </div>
