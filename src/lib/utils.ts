@@ -9,7 +9,7 @@ import { CURRENCY } from './constants'
  * @example formatPrice(49.99) => "49.99 TND"
  */
 export function formatPrice(amount: number): string {
-  return `${amount.toFixed(2)} ${CURRENCY.symbol}`
+  return `${amount.toLocaleString(undefined, { maximumFractionDigits: 0, minimumFractionDigits: 0 })} ${CURRENCY.symbol}`
 }
 
 /**
