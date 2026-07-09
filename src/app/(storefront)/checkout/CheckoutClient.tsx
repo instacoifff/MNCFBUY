@@ -117,15 +117,19 @@ export function CheckoutClient() {
 
               <div className={styles.formGrid}>
                 <div className={styles.inputGroup}>
-                  <label htmlFor="city">City</label>
-                  <input
-                    type="text"
+                  <label htmlFor="city">Governorate (City)</label>
+                  <select
                     id="city"
                     name="city"
                     required
-                    minLength={2}
                     className={styles.input}
-                  />
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Select a governorate...</option>
+                    {["Ariana", "Beja", "Ben Arous", "Bizerte", "Gabès", "Gafsa", "Jendouba", "Kairouan", "Kasserine", "Kebili", "Kef", "Mahdia", "Manouba", "Mednine", "Monastir", "Nabeul", "Sfax", "Sidi Bouzid", "Siliana", "Sousse", "Tataouine", "Tozeur", "Tunis", "Zaghouan"].map(gov => (
+                      <option key={gov} value={gov}>{gov}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className={styles.inputGroup}>
                   <label htmlFor="zipCode">Zip / Postal Code</label>

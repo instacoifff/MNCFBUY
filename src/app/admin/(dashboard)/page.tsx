@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import styles from './dashboard.module.css'
-import { DashboardCharts } from './DashboardCharts'
+import DashboardCharts from './DashboardCharts'
 import { format, subDays, subMonths, isAfter, startOfMonth, endOfMonth, format as dateFnsFormat } from 'date-fns'
 import { formatPrice } from '@/lib/utils'
 import { KpiCard } from './KpiCard'
@@ -179,6 +179,19 @@ export default async function AdminDashboardOverview() {
     order.customer_status = count === 1 ? 'First Time' : `${getOrdinal(count)} Time`
   }
 
+  const salesByGov: Record<string, number> = {}
+  orders.forEach(order => {
+    if (order.status !== 'cancelled') {
+      const city = (order.shipping_address as any)?.city || 'Unknown'
+      salesByGov[city] = (salesByGov[city] || 0) + Number(order.total_amount)
+    }
+  })
+  
+  const governorateSales = Object.keys(salesByGov).map(gov => ({
+    name: gov,
+    sales: salesByGov[gov]
+  })).sort((a, b) => b.sales - a.sales)
+
   return (
     <div className={styles.container}>
       {/* 5 KPI Cards Row */}
@@ -244,6 +257,7 @@ export default async function AdminDashboardOverview() {
         visitsToday={todayVisits?.length || 0}
         uniqueBuyersCount={new Set(orders.map(o => o.contact_phone).filter(Boolean)).size}
         products={allProducts || []}
+        governorateSales={governorateSales}
       />
     </div>
   )

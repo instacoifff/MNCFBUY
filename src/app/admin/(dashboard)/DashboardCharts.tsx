@@ -14,6 +14,7 @@ import {
   Cell
 } from 'recharts'
 import Image from 'next/image'
+import TunisiaMap from '@svg-maps/tunisia'
 import type { StatusDataItem, RankedItem } from '@/lib/types'
 import styles from './dashboard.module.css'
 
@@ -48,6 +49,7 @@ interface DashboardChartsProps {
   visitsToday?: number
   uniqueBuyersCount?: number
   products?: any[]
+  governorateSales?: { name: string, sales: number }[]
 }
 
 const CustomAreaTooltip = ({ active, payload, label }: any) => {
@@ -72,7 +74,7 @@ const CustomAreaTooltip = ({ active, payload, label }: any) => {
 
 const formatCurrency = (val: number) => `$${val.toLocaleString()}`
 
-export function DashboardCharts({
+export default function DashboardCharts({
   statusData,
   productSalesData,
   categorySalesData,
@@ -80,7 +82,8 @@ export function DashboardCharts({
   recentOrders,
   visitsToday = 0,
   uniqueBuyersCount = 0,
-  products = []
+  products = [],
+  governorateSales = []
 }: DashboardChartsProps) {
   
   // Custom mock retention data matching screenshot
@@ -89,6 +92,20 @@ export function DashboardCharts({
     { name: 'At Risk', value: 24, color: '#f59e0b' },
     { name: 'New', value: 13, color: '#8b5cf6' },
   ]
+
+  const salesRevenueDelivered = Math.round(revenueData.reduce((acc, val) => acc + val.revenue, 0))
+
+  const totalGovernorateSales = governorateSales.reduce((acc, g) => acc + g.sales, 0) || 1
+  const getGovernorateColor = (baseName: string) => {
+    const gov = governorateSales.find(g => g.name === baseName)
+    if (!gov || gov.sales === 0) return '#f1f5f9'
+    const percentage = gov.sales / totalGovernorateSales
+    if (percentage >= 0.3) return '#059669' // dark green
+    if (percentage >= 0.1) return '#10b981' // normal green
+    if (percentage >= 0.05) return '#34d399' // light green
+    return '#6ee7b7' // lighter green
+  }
+  const topGovs = governorateSales.slice(0, 5)
 
   // Add mock data for Area chart if it's empty to match screenshot curve
   const areaData = revenueData.every(d => d.revenue === 0) 
@@ -372,30 +389,41 @@ export function DashboardCharts({
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-               {/* Mock SVG Map Layout */}
-               <div style={{ flex: 1, opacity: 0.8 }}>
-                 <svg viewBox="0 0 400 200" fill="#e2e8f0" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: 'auto' }}>
-                    {/* Basic shapes representing map - very simplified */}
-                    <path d="M50 40 Q 60 30 70 50 T 90 70 Q 110 80 100 100 Q 80 110 60 90 Z" fill="#10b981" />
-                    <path d="M120 120 Q 140 100 160 140 T 130 180 Z" fill="#10b981" opacity="0.5" />
-                    <path d="M200 40 Q 220 20 240 50 T 260 70 Q 240 80 220 60 Z" fill="#10b981" opacity="0.8" />
-                    <path d="M280 60 Q 320 40 340 80 T 300 120 Z" fill="#10b981" opacity="0.3" />
-                    <path d="M220 100 Q 240 120 230 160 T 200 140 Z" fill="#ef4444" opacity="0.8" />
+               {/* Real SVG Map Layout */}
+               <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+                 <svg viewBox={TunisiaMap.viewBox} style={{ width: '100%', height: 'auto', maxHeight: '250px' }}>
+                    {TunisiaMap.locations.map((location: any) => {
+                      const baseName = location.name.replace(/ \d$/, '')
+                      const color = getGovernorateColor(baseName)
+                      return (
+                        <path
+                          key={location.id}
+                          d={location.path}
+                          fill={color}
+                          stroke="#ffffff"
+                          strokeWidth="1.5"
+                        >
+                          <title>{baseName}</title>
+                        </path>
+                      )
+                    })}
                  </svg>
                </div>
 
                {/* Region Breakdown Table */}
                <div style={{ width: '200px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                 {regionData.map((reg, i) => (
+                 {topGovs.length > 0 ? topGovs.map((gov, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: reg.color }} />
-                        <span style={{ color: '#64748b' }}>{reg.name}</span>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getGovernorateColor(gov.name) }} />
+                        <span style={{ color: '#64748b' }}>{gov.name}</span>
                       </div>
-                      <span style={{ fontWeight: 600, color: '#0f172a' }}>${reg.value.toLocaleString()}</span>
-                      <span style={{ color: '#94a3b8', width: '28px', textAlign: 'right' }}>{reg.percentage}%</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a' }}>{formatCurrency(gov.sales)}</span>
+                      <span style={{ color: '#94a3b8', width: '28px', textAlign: 'right' }}>{Math.round((gov.sales / totalGovernorateSales) * 100)}%</span>
                     </div>
-                 ))}
+                 )) : (
+                   <div style={{ color: '#64748b', fontSize: '0.8125rem' }}>No sales data by region.</div>
+                 )}
                </div>
             </div>
         </div>
