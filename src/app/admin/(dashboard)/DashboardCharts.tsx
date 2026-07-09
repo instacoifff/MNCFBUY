@@ -390,7 +390,7 @@ export default function DashboardCharts({
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                {/* Real SVG Map Layout */}
-               <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+               <div style={{ width: '220px', flexShrink: 0, display: 'flex', justifyContent: 'flex-start' }}>
                  <svg viewBox={TunisiaMap.viewBox} style={{ width: '100%', height: 'auto', maxHeight: '250px' }}>
                     {TunisiaMap.locations.map((location: any) => {
                       const baseName = location.name.replace(/ \d$/, '')
@@ -411,14 +411,14 @@ export default function DashboardCharts({
                </div>
 
                {/* Region Breakdown Table */}
-               <div style={{ width: '270px', maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingRight: '0.5rem' }}>
+               <div style={{ flex: 1, maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingRight: '0.5rem' }}>
                  {governorateSales.map((gov, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', fontSize: '0.8125rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getGovernorateColor(gov.name) }} />
                         <span style={{ color: '#64748b' }}>{gov.name} <span style={{ fontSize: '10px', color: '#94a3b8' }}>({gov.orders})</span></span>
                       </div>
-                      <span style={{ fontWeight: 600, color: '#0f172a', width: '85px', textAlign: 'right' }}>{formatCurrency(gov.sales)}</span>
+                      <span style={{ fontWeight: 600, color: '#0f172a', width: '110px', textAlign: 'right', whiteSpace: 'nowrap' }}>{formatCurrency(gov.sales)}</span>
                       <span style={{ color: '#94a3b8', width: '36px', textAlign: 'right' }}>{Math.round((gov.sales / totalGovernorateSales) * 100)}%</span>
                     </div>
                  ))}
