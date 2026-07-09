@@ -95,6 +95,10 @@ export default function DashboardCharts({
 
   const salesRevenueDelivered = Math.round(revenueData.reduce((acc, val) => acc + val.revenue, 0))
 
+  const totalOrderStatus = statusData.reduce((acc, curr) => acc + curr.value, 0)
+  const deliveredStatusValue = statusData.find(s => s.name === 'Delivered')?.value || 0
+  const deliveredRate = totalOrderStatus > 0 ? Math.round((deliveredStatusValue / totalOrderStatus) * 100) : 0
+
   const totalGovernorateSales = governorateSales.reduce((acc, g) => acc + g.sales, 0) || 1
   const getGovernorateColor = (baseName: string) => {
     const gov = governorateSales.find(g => g.name === baseName)
@@ -619,6 +623,16 @@ export default function DashboardCharts({
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '50%', 
+                    left: '50%', 
+                    transform: 'translate(-50%, -50%)',
+                    textAlign: 'center'
+                  }}>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a' }}>{deliveredRate}%</div>
+                    <div style={{ fontSize: '0.625rem', color: '#64748b' }}>Delivered</div>
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
