@@ -1,10 +1,13 @@
-/* eslint-disable */
-// @ts-nocheck
 import React from 'react'
 import { ProductCard } from './ProductCard'
 import styles from './ProductGrid.module.css'
+import type { ProductWithCategory } from '@/lib/types'
 
-export function ProductGrid({ products }: { products: any[] }) {
+interface ProductGridProps {
+  products: ProductWithCategory[]
+}
+
+export function ProductGrid({ products }: ProductGridProps) {
   if (!products || products.length === 0) {
     return (
       <div className={styles.empty}>
@@ -15,7 +18,7 @@ export function ProductGrid({ products }: { products: any[] }) {
 
   return (
     <div className={styles.grid}>
-      {products.map(product => (
+      {products.map((product) => (
         <ProductCard key={product.id} product={product} />
       ))}
     </div>

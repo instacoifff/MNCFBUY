@@ -1,5 +1,3 @@
-/* eslint-disable */
-// @ts-nocheck
 import { CheckoutClient } from './CheckoutClient'
 
 export const metadata = {

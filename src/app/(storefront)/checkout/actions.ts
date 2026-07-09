@@ -1,49 +1,77 @@
-/* eslint-disable */
-// @ts-nocheck
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { checkoutFormSchema } from '@/lib/validation'
+import type { CartItem, CreateOrderResult } from '@/lib/types'
 
-export async function createOrder(formData: FormData, items: any[], totalAmount: number) {
+/**
+ * Server action to create a new order.
+ * 
+ * SECURITY: Server-side total recalculation from DB prices.
+ * We do NOT trust the client-sent totalAmount.
+ */
+export async function createOrder(
+  formData: FormData,
+  items: CartItem[],
+  _clientTotal: number // Intentionally ignored — recalculated server-side
+): Promise<CreateOrderResult> {
+  // 1. Validate form input
+  const rawData: Record<string, unknown> = {}
+  formData.forEach((value, key) => {
+    rawData[key] = value
+  })
+
+  const parsed = checkoutFormSchema.safeParse(rawData)
+  if (!parsed.success) {
+    const firstError = parsed.error.issues[0]
+    return { error: firstError?.message ?? 'Invalid form data.' }
+  }
+
+  const { fullName, email, phone, address, city, zipCode } = parsed.data
+
+  if (!items || items.length === 0) {
+    return { error: 'Your cart is empty.' }
+  }
+
   const supabase = await createClient()
 
-  const fullName = formData.get('fullName') as string
-  const email = formData.get('email') as string
-  const phone = formData.get('phone') as string
-  const address = formData.get('address') as string
-  const city = formData.get('city') as string
-  const zipCode = formData.get('zipCode') as string
-
-  const orderId = crypto.randomUUID()
-
-  // 0. Pre-Checkout Stock Verification
-  // Fetch the latest stock for all items from the database
-  const productIds = items.map(item => item.product_id)
+  // 2. Pre-checkout stock verification AND server-side price lookup
+  const productIds = items.map((item) => item.product_id)
   const { data: products, error: productsError } = await supabase
     .from('products')
-    .select('id, title, stock')
+    .select('id, title, stock, price')
     .in('id', productIds)
 
   if (productsError || !products) {
     return { error: 'Failed to verify inventory. Please try again.' }
   }
 
-  // Check if any item exceeds available stock
+  // Verify stock AND calculate real total from DB prices
+  let serverTotal = 0
   for (const item of items) {
-    const dbProduct = products.find(p => p.id === item.product_id)
+    const dbProduct = products.find((p) => p.id === item.product_id)
     if (!dbProduct) {
-      return { error: `Product ${item.title} no longer exists.` }
+      return { error: `Product "${item.title}" no longer exists.` }
     }
     if (item.quantity > dbProduct.stock) {
-      return { error: `Sorry, only ${dbProduct.stock} left in stock for ${dbProduct.title}.` }
+      return {
+        error: `Sorry, only ${dbProduct.stock} left in stock for "${dbProduct.title}".`,
+      }
     }
+    if (item.quantity < 1) {
+      return { error: `Invalid quantity for "${item.title}".` }
+    }
+    // Use the DB price, not the client-sent price
+    serverTotal += dbProduct.price * item.quantity
   }
 
-  // 1. Create the Order
+  const orderId = crypto.randomUUID()
+
+  // 3. Create the Order with server-calculated total
   const { error: orderError } = await supabase.from('orders').insert({
     id: orderId,
-    total_amount: totalAmount,
+    total_amount: serverTotal,
     status: 'pending',
     payment_method: 'cash_on_delivery',
     contact_email: email,
@@ -52,30 +80,36 @@ export async function createOrder(formData: FormData, items: any[], totalAmount:
       fullName,
       address,
       city,
-      zipCode
-    }
+      zipCode,
+    },
   })
 
   if (orderError) {
-    return { error: 'Failed to create order.' }
+    return { error: 'Failed to create order. Please try again.' }
   }
 
-  // 2. Create the Order Items
-  const orderItemsData = items.map(item => ({
-    order_id: orderId,
-    product_id: item.product_id,
-    quantity: item.quantity,
-    price_at_time: item.price
-  }))
+  // 4. Create the Order Items with DB prices
+  const orderItemsData = items.map((item) => {
+    const dbProduct = products.find((p) => p.id === item.product_id)!
+    return {
+      order_id: orderId,
+      product_id: item.product_id,
+      quantity: item.quantity,
+      price_at_time: dbProduct.price, // DB price, not client price
+    }
+  })
 
-  const { error: itemsError } = await supabase.from('order_items').insert(orderItemsData)
+  const { error: itemsError } = await supabase
+    .from('order_items')
+    .insert(orderItemsData)
 
   if (itemsError) {
-    return { error: 'Failed to save order items.' }
+    // Attempt to clean up the orphaned order
+    await supabase.from('orders').delete().eq('id', orderId)
+    return { error: 'Failed to save order items. Please try again.' }
   }
 
-  // 3. Optional: Deduct stock from products (simplified)
-  // For a production app, we would use an RPC or a database trigger to ensure consistency.
+  // Stock deduction is handled by the database trigger (trg_decrement_stock)
 
   revalidatePath('/admin')
   return { success: true, orderId }

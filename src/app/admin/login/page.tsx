@@ -1,5 +1,3 @@
-/* eslint-disable */
-// @ts-nocheck
 import { LoginForm } from './LoginForm'
 import styles from './login.module.css'
 

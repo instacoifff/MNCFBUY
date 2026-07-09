@@ -1,14 +1,19 @@
-/* eslint-disable */
-// @ts-nocheck
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { useCart } from '@/context/CartContext'
 import { Button } from '@/components/ui/Button'
 import { ShoppingCart, CheckCircle, Minus, Plus } from 'lucide-react'
 import styles from './productClient.module.css'
+import type { ProductWithCategory } from '@/lib/types'
+import { formatPrice } from '@/lib/utils'
 
-export function ProductClient({ product }: { product: any }) {
+interface ProductClientProps {
+  product: ProductWithCategory
+}
+
+export function ProductClient({ product }: ProductClientProps) {
   const { addToCart } = useCart()
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
@@ -20,7 +25,7 @@ export function ProductClient({ product }: { product: any }) {
       price: product.price,
       quantity,
       image_url: product.image_url || '',
-      maxStock: product.stock
+      maxStock: product.stock,
     })
     setAdded(true)
     setTimeout(() => setAdded(false), 2000)
@@ -33,7 +38,14 @@ export function ProductClient({ product }: { product: any }) {
       {/* Left: Image Gallery */}
       <div className={styles.imageSection}>
         {product.image_url ? (
-          <img src={product.image_url} alt={product.title} className={styles.mainImage} />
+          <Image
+            src={product.image_url}
+            alt={product.title}
+            className={styles.mainImage}
+            fill
+            sizes="(max-width: 900px) 100vw, 50vw"
+            priority
+          />
         ) : (
           <div className={styles.imagePlaceholder}>No Image Available</div>
         )}
@@ -41,17 +53,21 @@ export function ProductClient({ product }: { product: any }) {
 
       {/* Right: Info */}
       <div className={styles.infoSection}>
-        <div className={styles.category}>{product.category?.name || 'Uncategorized'}</div>
+        <div className={styles.category}>
+          {product.category?.name || 'Uncategorized'}
+        </div>
         <h1 className={styles.title}>{product.title}</h1>
-        <p className={styles.price}>{product.price.toFixed(2)} TND</p>
-        
+        <p className={styles.price}>{formatPrice(product.price)}</p>
+
         <div className={styles.description}>
           {product.description || 'No description provided.'}
         </div>
 
         <div className={styles.stockStatus}>
           {inStock ? (
-            <span className={styles.inStock}>In Stock ({product.stock} available)</span>
+            <span className={styles.inStock}>
+              In Stock ({product.stock} available)
+            </span>
           ) : (
             <span className={styles.outOfStock}>Out of Stock</span>
           )}
@@ -60,26 +76,32 @@ export function ProductClient({ product }: { product: any }) {
         {inStock && (
           <div className={styles.actions}>
             <div className={styles.quantityWrapper}>
-              <button 
-                className={styles.qtyBtn} 
-                onClick={() => setQuantity(q => Math.max(1, q - 1))}
+              <button
+                className={styles.qtyBtn}
+                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                aria-label="Decrease quantity"
               >
                 <Minus size={16} />
               </button>
               <span className={styles.qtyValue}>{quantity}</span>
-              <button 
-                className={styles.qtyBtn} 
-                onClick={() => setQuantity(q => Math.min(product.stock, q + 1))}
+              <button
+                className={styles.qtyBtn}
+                onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                aria-label="Increase quantity"
               >
                 <Plus size={16} />
               </button>
             </div>
-            
+
             <Button onClick={handleAdd} className={styles.addBtn}>
               {added ? (
-                <><CheckCircle size={20} /> Added to Cart</>
+                <>
+                  <CheckCircle size={20} /> Added to Cart
+                </>
               ) : (
-                <><ShoppingCart size={20} /> Add to Cart</>
+                <>
+                  <ShoppingCart size={20} /> Add to Cart
+                </>
               )}
             </Button>
           </div>

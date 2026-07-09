@@ -1,24 +1,30 @@
-/* eslint-disable */
-// @ts-nocheck
 'use client'
 
 import React, { useState } from 'react'
 import { updateOrderStatus } from './actions'
 import styles from './orders.module.css'
+import type { OrderStatus } from '@/lib/types'
 
-export function StatusUpdater({ orderId, currentStatus }: { orderId: string, currentStatus: string }) {
+interface StatusUpdaterProps {
+  orderId: string
+  currentStatus: OrderStatus
+}
+
+export function StatusUpdater({ orderId, currentStatus }: StatusUpdaterProps) {
   const [isUpdating, setIsUpdating] = useState(false)
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     setIsUpdating(true)
-    const newStatus = e.target.value
+    const newStatus = e.target.value as OrderStatus
     await updateOrderStatus(orderId, newStatus)
     setIsUpdating(false)
   }
 
   return (
     <div className={styles.statusUpdater}>
-      <label htmlFor={`status-${orderId}`} className={styles.statusLabel}>Status:</label>
+      <label htmlFor={`status-${orderId}`} className={styles.statusLabel}>
+        Status:
+      </label>
       <select
         id={`status-${orderId}`}
         value={currentStatus}

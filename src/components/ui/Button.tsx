@@ -1,13 +1,12 @@
-/* eslint-disable */
-// @ts-nocheck
-import React from 'react';
-import styles from './Button.module.css';
+import React from 'react'
+import styles from './Button.module.css'
+import { cn } from '@/lib/utils'
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
-  size?: 'sm' | 'md' | 'lg';
-  fullWidth?: boolean;
-  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
+  size?: 'sm' | 'md' | 'lg'
+  fullWidth?: boolean
+  children: React.ReactNode
 }
 
 export function Button({
@@ -18,17 +17,18 @@ export function Button({
   className = '',
   ...props
 }: ButtonProps) {
-  const classNames = [
-    styles.button,
-    styles[variant],
-    styles[size],
-    fullWidth ? styles.fullWidth : '',
-    className,
-  ].filter(Boolean).join(' ');
-
   return (
-    <button className={classNames} {...props}>
+    <button
+      className={cn(
+        styles.button,
+        styles[variant],
+        styles[size],
+        fullWidth && styles.fullWidth,
+        className
+      )}
+      {...props}
+    >
       {children}
     </button>
-  );
+  )
 }

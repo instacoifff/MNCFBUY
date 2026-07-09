@@ -1,8 +1,9 @@
-/* eslint-disable */
-// @ts-nocheck
 import { createClient } from '@/lib/supabase/server'
 import styles from './orders.module.css'
 import { StatusUpdater } from './StatusUpdater'
+import type { ShippingAddress, OrderStatus } from '@/lib/types'
+import { formatPrice } from '@/lib/utils'
+import { format } from 'date-fns'
 
 export default async function OrdersPage() {
   const supabase = await createClient()
@@ -10,7 +11,8 @@ export default async function OrdersPage() {
   // Fetch all orders with their items and products
   const { data: orders, error } = await supabase
     .from('orders')
-    .select(`
+    .select(
+      `
       *,
       order_items (
         id,
@@ -20,7 +22,8 @@ export default async function OrdersPage() {
           title
         )
       )
-    `)
+    `
+    )
     .order('created_at', { ascending: false })
 
   return (
@@ -32,32 +35,50 @@ export default async function OrdersPage() {
 
       <div className={styles.content}>
         {error ? (
-          <div className={styles.error}>Failed to load orders: {error.message}</div>
+          <div className={styles.error}>
+            Failed to load orders: {error.message}
+          </div>
         ) : !orders || orders.length === 0 ? (
           <div className={styles.emptyState}>No orders found.</div>
         ) : (
           <div className={styles.ordersList}>
-            {orders.map((order) => {
-              const address = order.shipping_address as any
+            {orders.map((order: any) => {
+              const address = order.shipping_address as ShippingAddress
               return (
                 <div key={order.id} className={styles.orderCard}>
                   <div className={styles.orderHeader}>
                     <div>
-                      <h2 className={styles.orderId}>Order #{order.id.split('-')[0]}</h2>
-                      <p className={styles.orderDate}>{new Date(order.created_at).toLocaleString()}</p>
+                      <h2 className={styles.orderId}>
+                        Order #{order.id.split('-')[0]}
+                      </h2>
+                      <p className={styles.orderDate}>
+                        {format(new Date(order.created_at), 'PPP pp')}
+                      </p>
                     </div>
                     <div className={styles.statusSection}>
-                      <StatusUpdater orderId={order.id} currentStatus={order.status} />
+                      <StatusUpdater
+                        orderId={order.id}
+                        currentStatus={order.status as OrderStatus}
+                      />
                     </div>
                   </div>
 
                   <div className={styles.orderDetails}>
                     <div className={styles.customerInfo}>
                       <h3>Customer Information</h3>
-                      <p><strong>Name:</strong> {address?.fullName || 'N/A'}</p>
-                      <p><strong>Email:</strong> {order.contact_email}</p>
-                      <p><strong>Phone:</strong> {order.contact_phone}</p>
-                      <p><strong>Address:</strong> {address?.address}, {address?.city}, {address?.zipCode}</p>
+                      <p>
+                        <strong>Name:</strong> {address?.fullName || 'N/A'}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {order.contact_email}
+                      </p>
+                      <p>
+                        <strong>Phone:</strong> {order.contact_phone}
+                      </p>
+                      <p>
+                        <strong>Address:</strong> {address?.address},{' '}
+                        {address?.city}, {address?.zipCode}
+                      </p>
                     </div>
 
                     <div className={styles.itemsList}>
@@ -75,17 +96,27 @@ export default async function OrdersPage() {
                           <tbody>
                             {order.order_items?.map((item: any) => (
                               <tr key={item.id}>
-                                <td>{item.product?.title || 'Unknown Product'}</td>
+                                <td>
+                                  {item.product?.title || 'Unknown Product'}
+                                </td>
                                 <td>{item.quantity}</td>
-                                <td>{item.price_at_time.toFixed(2)} TND</td>
-                                <td>{(item.quantity * item.price_at_time).toFixed(2)} TND</td>
+                                <td>{formatPrice(item.price_at_time)}</td>
+                                <td>
+                                  {formatPrice(
+                                    item.quantity * item.price_at_time
+                                  )}
+                                </td>
                               </tr>
                             ))}
                           </tbody>
                           <tfoot>
                             <tr>
-                              <td colSpan={3} className={styles.totalLabel}>Total:</td>
-                              <td className={styles.totalAmount}>{order.total_amount.toFixed(2)} TND</td>
+                              <td colSpan={3} className={styles.totalLabel}>
+                                Total:
+                              </td>
+                              <td className={styles.totalAmount}>
+                                {formatPrice(order.total_amount)}
+                              </td>
                             </tr>
                           </tfoot>
                         </table>

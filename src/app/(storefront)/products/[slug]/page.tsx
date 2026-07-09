@@ -1,11 +1,14 @@
-/* eslint-disable */
-// @ts-nocheck
 import { createClient } from '@/lib/supabase/server'
 import { ProductClient } from './ProductClient'
 import { notFound } from 'next/navigation'
+import type { ProductWithCategory } from '@/lib/types'
 
-export default async function ProductPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+export default async function ProductPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>
+}) {
+  const { slug } = await params
   const supabase = await createClient()
 
   const { data: product } = await supabase
@@ -18,5 +21,5 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     notFound()
   }
 
-  return <ProductClient product={product} />
+  return <ProductClient product={product as ProductWithCategory} />
 }

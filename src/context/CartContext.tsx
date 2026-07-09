@@ -1,22 +1,13 @@
-/* eslint-disable */
-// @ts-nocheck
 'use client'
 
-import React, { createContext, useContext, useState, useEffect } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react'
+import type { CartItem, CartItemInput } from '@/lib/types'
 
-export type CartItem = {
-  id: string
-  product_id: string
-  title: string
-  price: number
-  quantity: number
-  image_url: string
-  maxStock: number
-}
+const STORAGE_KEY = 'mncfbuy_cart'
 
-type CartContextType = {
+interface CartContextType {
   items: CartItem[]
-  addToCart: (item: Omit<CartItem, 'id'>) => void
+  addToCart: (item: CartItemInput) => void
   removeFromCart: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -28,70 +19,113 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
-  // We must always wrap children in the Provider, even during SSR.
-  // To avoid hydration mismatch, we can just return null for the actual UI
-  // inside the components that consume the cart, OR just let the context
-  // be empty initially.
   const [isMounted, setIsMounted] = useState(false)
 
   // Load from localStorage on mount
   useEffect(() => {
     setIsMounted(true)
-    const savedCart = localStorage.getItem('mncfbuy_cart')
-    if (savedCart) {
-      try {
-        setItems(JSON.parse(savedCart))
-      } catch (e) {
-        console.error('Failed to parse cart')
+    try {
+      const savedCart = localStorage.getItem(STORAGE_KEY)
+      if (savedCart) {
+        const parsed = JSON.parse(savedCart) as CartItem[]
+        if (Array.isArray(parsed)) {
+          setItems(parsed)
+        }
       }
+    } catch {
+      console.error('Failed to parse cart from localStorage')
     }
   }, [])
 
   // Save to localStorage when items change
   useEffect(() => {
     if (isMounted) {
-      localStorage.setItem('mncfbuy_cart', JSON.stringify(items))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
     }
   }, [items, isMounted])
 
-  const addToCart = (newItem: Omit<CartItem, 'id'>) => {
-    setItems(current => {
-      const existingItem = current.find(item => item.product_id === newItem.product_id)
+  const addToCart = useCallback((newItem: CartItemInput) => {
+    setItems((current) => {
+      const existingItem = current.find(
+        (item) => item.product_id === newItem.product_id
+      )
       if (existingItem) {
-        return current.map(item => 
-          item.product_id === newItem.product_id 
-            ? { ...item, quantity: Math.min(item.quantity + newItem.quantity, item.maxStock) }
+        return current.map((item) =>
+          item.product_id === newItem.product_id
+            ? {
+                ...item,
+                quantity: Math.min(
+                  item.quantity + newItem.quantity,
+                  item.maxStock
+                ),
+              }
             : item
         )
       }
-      return [...current, { ...newItem, quantity: Math.min(newItem.quantity, newItem.maxStock), id: Math.random().toString(36).substring(7) }]
+      return [
+        ...current,
+        {
+          ...newItem,
+          quantity: Math.min(newItem.quantity, newItem.maxStock),
+          id: crypto.randomUUID(),
+        },
+      ]
     })
-  }
+  }, [])
 
-  const removeFromCart = (id: string) => {
-    setItems(current => current.filter(item => item.id !== id))
-  }
+  const removeFromCart = useCallback((id: string) => {
+    setItems((current) => current.filter((item) => item.id !== id))
+  }, [])
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = useCallback((id: string, quantity: number) => {
     if (quantity < 1) return
-    setItems(current => 
-      current.map(item => item.id === id ? { ...item, quantity: Math.min(quantity, item.maxStock) } : item)
+    setItems((current) =>
+      current.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.min(quantity, item.maxStock) }
+          : item
+      )
     )
-  }
+  }, [])
 
-  const clearCart = () => setItems([])
+  const clearCart = useCallback(() => setItems([]), [])
 
-  const cartTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0)
-  const itemCount = items.reduce((count, item) => count + item.quantity, 0)
-
-  return (
-    <CartContext.Provider value={{ items: isMounted ? items : [], addToCart, removeFromCart, updateQuantity, clearCart, cartTotal: isMounted ? cartTotal : 0, itemCount: isMounted ? itemCount : 0 }}>
-      {children}
-    </CartContext.Provider>
+  const cartTotal = useMemo(
+    () => items.reduce((total, item) => total + item.price * item.quantity, 0),
+    [items]
   )
+
+  const itemCount = useMemo(
+    () => items.reduce((count, item) => count + item.quantity, 0),
+    [items]
+  )
+
+  const value = useMemo<CartContextType>(
+    () => ({
+      items: isMounted ? items : [],
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      cartTotal: isMounted ? cartTotal : 0,
+      itemCount: isMounted ? itemCount : 0,
+    }),
+    [
+      isMounted,
+      items,
+      addToCart,
+      removeFromCart,
+      updateQuantity,
+      clearCart,
+      cartTotal,
+      itemCount,
+    ]
+  )
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }
 
-export function useCart() {
+export function useCart(): CartContextType {
   const context = useContext(CartContext)
   if (context === undefined) {
     throw new Error('useCart must be used within a CartProvider')

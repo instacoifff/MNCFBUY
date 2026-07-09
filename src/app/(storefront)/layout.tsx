@@ -1,12 +1,12 @@
-/* eslint-disable */
-// @ts-nocheck
-import { Navbar } from "@/components/layout/Navbar";
-import { createClient } from "@/lib/supabase/server";
+import { Navbar } from '@/components/layout/Navbar'
+import { Footer } from '@/components/layout/Footer'
+import { createClient } from '@/lib/supabase/server'
+import type { Category } from '@/lib/types'
 
 export default async function StorefrontLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   const supabase = await createClient()
   const { data: categories } = await supabase
@@ -16,10 +16,9 @@ export default async function StorefrontLayout({
 
   return (
     <>
-      <Navbar categories={categories || []} />
-      <main style={{ minHeight: 'calc(100vh - 4rem)' }}>
-        {children}
-      </main>
+      <Navbar categories={(categories as Pick<Category, 'name' | 'slug'>[]) || []} />
+      <main style={{ minHeight: 'calc(100vh - 4rem)' }}>{children}</main>
+      <Footer />
     </>
-  );
+  )
 }

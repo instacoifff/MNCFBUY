@@ -1,21 +1,32 @@
-/* eslint-disable */
-// @ts-nocheck
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { categoryFormSchema } from '@/lib/validation'
 
 export async function createCategory(formData: FormData) {
   const supabase = await createClient()
-  
-  const name = formData.get('name') as string
-  const description = formData.get('description') as string
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
+
+  const rawData = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+  }
+
+  const parsed = categoryFormSchema.safeParse(rawData)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
+  }
+
+  const { name, description } = parsed.data
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
 
   const { error } = await supabase.from('categories').insert({
     name,
     slug,
-    description
+    description,
   })
 
   if (error) {
@@ -28,9 +39,9 @@ export async function createCategory(formData: FormData) {
 
 export async function deleteCategory(id: string) {
   const supabase = await createClient()
-  
+
   const { error } = await supabase.from('categories').delete().eq('id', id)
-  
+
   if (error) {
     return { error: error.message }
   }
@@ -41,16 +52,31 @@ export async function deleteCategory(id: string) {
 
 export async function updateCategory(id: string, formData: FormData) {
   const supabase = await createClient()
-  
-  const name = formData.get('name') as string
-  const description = formData.get('description') as string
-  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
 
-  const { error } = await supabase.from('categories').update({
-    name,
-    slug,
-    description
-  }).eq('id', id)
+  const rawData = {
+    name: formData.get('name'),
+    description: formData.get('description'),
+  }
+
+  const parsed = categoryFormSchema.safeParse(rawData)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0].message }
+  }
+
+  const { name, description } = parsed.data
+  const slug = name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)+/g, '')
+
+  const { error } = await supabase
+    .from('categories')
+    .update({
+      name,
+      slug,
+      description,
+    })
+    .eq('id', id)
 
   if (error) {
     return { error: error.message }
