@@ -179,17 +179,25 @@ export default async function AdminDashboardOverview() {
     order.customer_status = count === 1 ? 'First Time' : `${getOrdinal(count)} Time`
   }
 
-  const salesByGov: Record<string, number> = {}
+  const governorateNames = ["Ariana", "Beja", "Ben Arous", "Bizerte", "Gabès", "Gafsa", "Jendouba", "Kairouan", "Kasserine", "Kebili", "Kef", "Mahdia", "Manouba", "Mednine", "Monastir", "Nabeul", "Sfax", "Sidi Bouzid", "Siliana", "Sousse", "Tataouine", "Tozeur", "Tunis", "Zaghouan"]
+  const salesByGov: Record<string, { sales: number, ordersCount: number }> = {}
+  governorateNames.forEach(gov => {
+    salesByGov[gov] = { sales: 0, ordersCount: 0 }
+  })
+
   orders.forEach(order => {
-    if (order.status !== 'cancelled') {
+    if (order.status === 'delivered') {
       const city = (order.shipping_address as any)?.city || 'Unknown'
-      salesByGov[city] = (salesByGov[city] || 0) + Number(order.total_amount)
+      if (!salesByGov[city]) salesByGov[city] = { sales: 0, ordersCount: 0 }
+      salesByGov[city].sales += Number(order.total_amount)
+      salesByGov[city].ordersCount += 1
     }
   })
   
   const governorateSales = Object.keys(salesByGov).map(gov => ({
     name: gov,
-    sales: salesByGov[gov]
+    sales: salesByGov[gov].sales,
+    orders: salesByGov[gov].ordersCount
   })).sort((a, b) => b.sales - a.sales)
 
   return (

@@ -49,7 +49,7 @@ interface DashboardChartsProps {
   visitsToday?: number
   uniqueBuyersCount?: number
   products?: any[]
-  governorateSales?: { name: string, sales: number }[]
+  governorateSales?: { name: string, sales: number, orders: number }[]
 }
 
 const CustomAreaTooltip = ({ active, payload, label }: any) => {
@@ -105,7 +105,6 @@ export default function DashboardCharts({
     if (percentage >= 0.05) return '#34d399' // light green
     return '#6ee7b7' // lighter green
   }
-  const topGovs = governorateSales.slice(0, 5)
 
   // Add mock data for Area chart if it's empty to match screenshot curve
   const areaData = revenueData.every(d => d.revenue === 0) 
@@ -411,19 +410,17 @@ export default function DashboardCharts({
                </div>
 
                {/* Region Breakdown Table */}
-               <div style={{ width: '200px', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                 {topGovs.length > 0 ? topGovs.map((gov, i) => (
+               <div style={{ width: '230px', maxHeight: '250px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.75rem', paddingRight: '0.5rem' }}>
+                 {governorateSales.map((gov, i) => (
                     <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8125rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: getGovernorateColor(gov.name) }} />
-                        <span style={{ color: '#64748b' }}>{gov.name}</span>
+                        <span style={{ color: '#64748b' }}>{gov.name} <span style={{ fontSize: '10px', color: '#94a3b8' }}>({gov.orders})</span></span>
                       </div>
                       <span style={{ fontWeight: 600, color: '#0f172a' }}>{formatCurrency(gov.sales)}</span>
                       <span style={{ color: '#94a3b8', width: '28px', textAlign: 'right' }}>{Math.round((gov.sales / totalGovernorateSales) * 100)}%</span>
                     </div>
-                 )) : (
-                   <div style={{ color: '#64748b', fontSize: '0.8125rem' }}>No sales data by region.</div>
-                 )}
+                 ))}
                </div>
             </div>
         </div>
