@@ -17,7 +17,7 @@ export default async function AdminDashboardOverview() {
     { data: allProducts },
     { data: todayVisits }
   ] = await Promise.all([
-    supabase.from('orders').select('id, total_amount, status, created_at, contact_email, contact_phone').order('created_at', { ascending: false }),
+    supabase.from('orders').select('id, total_amount, status, created_at, contact_email, contact_phone, shipping_address, order_items(quantity, products(title))').order('created_at', { ascending: false }),
     supabase.from('products').select('id, title, price, stock, image_url'),
     supabase.from('site_visits').select('id, created_at').gte('created_at', new Date(new Date().setHours(0,0,0,0)).toISOString())
   ])
@@ -162,6 +162,15 @@ export default async function AdminDashboardOverview() {
   }))
 
   const vsDateText = 'vs Apr 25 - May 24'
+
+  const customerCounts: Record<string, number> = {}
+  // orders are sorted descending by date. If we iterate from end to start (oldest to newest):
+  for (let i = orders.length - 1; i >= 0; i--) {
+    const phone = orders[i].contact_phone || 'guest'
+    customerCounts[phone] = (customerCounts[phone] || 0) + 1
+    const order = orders[i] as any
+    order.customer_status = customerCounts[phone] === 1 ? 'First Time' : `Returning (${customerCounts[phone]}nd Time)`
+  }
 
   return (
     <div className={styles.container}>

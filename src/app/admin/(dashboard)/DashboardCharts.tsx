@@ -218,66 +218,91 @@ export function DashboardCharts({
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Order ID</th>
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Customer</th>
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Date</th>
-                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Amount</th>
-                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Payment</th>
-                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Fulfillment</th>
+                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Location</th>
+                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Products</th>
+                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Total Price</th>
+                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Type</th>
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Status</th>
-                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}></th>
               </tr>
             </thead>
             <tbody>
               {recentOrders.length > 0 ? recentOrders.map((ro, i) => {
-                // Map the status to display variations
-                let stat = 'Pending'
-                let ful = 'Pending'
-                if (ro.status === 'delivered') { stat = 'Paid'; ful = 'Fulfilled' }
-                else if (ro.status === 'shipped') { stat = 'Shipped'; ful = 'Fulfilled' }
-                else if (ro.status === 'cancelled') { stat = 'Cancelled'; ful = 'Cancelled' }
-                else if (ro.status === 'confirmed') { stat = 'Processing'; ful = 'Processing' }
+                // Determine display names for status
+                let statColor = '#f59e0b'
+                let statBg = 'rgba(245, 158, 11, 0.1)'
+                if (ro.status === 'delivered') { statColor = '#10b981'; statBg = 'rgba(16, 185, 129, 0.1)' }
+                else if (ro.status === 'shipped') { statColor = '#8b5cf6'; statBg = 'rgba(139, 92, 246, 0.1)' }
+                else if (ro.status === 'cancelled') { statColor = '#ef4444'; statBg = 'rgba(239, 68, 68, 0.1)' }
+                else if (ro.status === 'confirmed') { statColor = '#3b82f6'; statBg = 'rgba(59, 130, 246, 0.1)' }
                 
                 const amt = `$${Number(ro.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
                 const date = new Date(ro.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                const name = ro.contact_email?.split('@')[0] || 'Guest'
                 
+                const city = ro.shipping_address?.city || 'Unknown'
+                const name = ro.shipping_address?.fullName || ro.contact_email?.split('@')[0] || 'Guest'
+                const phone = ro.contact_phone || 'No phone'
+                const email = ro.contact_email
+                const custType = ro.customer_status || 'Unknown'
+
                 return (
                 <tr key={i} style={{ borderBottom: i === 4 ? 'none' : '1px solid #f1f5f9', fontSize: '0.875rem' }}>
-                  <td style={{ padding: '1rem 0', fontWeight: 600, color: '#0f172a' }}>{ro.id}</td>
-                  <td style={{ padding: '1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#e2e8f0', overflow: 'hidden' }}>
-                       <Image src={`https://ui-avatars.com/api/?name=${ro.name}&background=random`} width={24} height={24} alt={ro.name} />
-                    </div>
-                    <span style={{ color: '#0f172a', fontWeight: 500 }}>{ro.name}</span>
-                  </td>
-                  <td style={{ padding: '1rem 0', color: '#64748b' }}>{ro.date}</td>
-                  <td style={{ padding: '1rem 0', fontWeight: 600, color: '#0f172a' }}>{ro.amt}</td>
-                  <td style={{ padding: '1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#64748b' }}>
-                    {/* Mock payment icon */}
-                    <div style={{ background: '#1e3a8a', color: '#fff', fontSize: '0.6rem', padding: '0.1rem 0.2rem', borderRadius: '2px', fontWeight: 'bold' }}>{ro.pay}</div>
-                    <span>**** {4242 - i}</span>
-                  </td>
+                  <td style={{ padding: '1rem 0', fontWeight: 600, color: '#0f172a' }}>#{ro.id.split('-')[0]}</td>
+                  
                   <td style={{ padding: '1rem 0' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                      <div style={{ 
-                        width: '6px', height: '6px', borderRadius: '50%', 
-                        backgroundColor: ful === 'Fulfilled' ? '#10b981' : ful === 'Processing' ? '#3b82f6' : '#f59e0b'
-                      }} />
-                      <span style={{ color: '#64748b' }}>{ful}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#e2e8f0', overflow: 'hidden', flexShrink: 0 }}>
+                         <Image src={`https://ui-avatars.com/api/?name=${name}&background=random`} width={24} height={24} alt={name} />
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ color: '#0f172a', fontWeight: 600, fontSize: '0.8125rem' }}>{name}</span>
+                        <span style={{ color: '#64748b', fontSize: '0.75rem' }}>{phone}</span>
+                        {email && <span style={{ color: '#64748b', fontSize: '0.7rem' }}>{email}</span>}
+                      </div>
                     </div>
                   </td>
+
+                  <td style={{ padding: '1rem 0', color: '#64748b' }}>{date}</td>
+                  
+                  <td style={{ padding: '1rem 0', color: '#64748b' }}>{city}</td>
+                  
+                  <td style={{ padding: '1rem 0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '180px' }}>
+                      {ro.order_items?.map((item: any, idx: number) => (
+                        <div key={idx} style={{ fontSize: '0.75rem', color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {item.quantity}x {item.product?.title || 'Unknown Product'}
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                  
+                  <td style={{ padding: '1rem 0', fontWeight: 600, color: '#0f172a' }}>{amt}</td>
+                  
+                  <td style={{ padding: '1rem 0' }}>
+                     <span style={{
+                        padding: '0.15rem 0.4rem',
+                        borderRadius: '4px',
+                        fontSize: '0.65rem',
+                        fontWeight: 600,
+                        backgroundColor: custType === 'First Time' ? '#f1f5f9' : 'rgba(139, 92, 246, 0.1)',
+                        color: custType === 'First Time' ? '#64748b' : '#8b5cf6',
+                        textTransform: 'uppercase'
+                     }}>
+                       {custType}
+                     </span>
+                  </td>
+
                   <td style={{ padding: '1rem 0' }}>
                      <span style={{
                         padding: '0.25rem 0.625rem',
                         borderRadius: '4px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        backgroundColor: stat === 'Paid' ? 'rgba(16, 185, 129, 0.1)' : stat === 'Processing' ? 'rgba(59, 130, 246, 0.1)' : stat === 'Shipped' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: stat === 'Paid' ? '#10b981' : stat === 'Processing' ? '#3b82f6' : stat === 'Shipped' ? '#8b5cf6' : '#ef4444'
+                        backgroundColor: statBg,
+                        color: statColor,
+                        textTransform: 'capitalize'
                      }}>
-                       {stat}
+                       {ro.status}
                      </span>
-                  </td>
-                  <td style={{ padding: '1rem 0', color: '#94a3b8', cursor: 'pointer', textAlign: 'right' }}>
-                    ⋮
                   </td>
                 </tr>
               )}) : (
