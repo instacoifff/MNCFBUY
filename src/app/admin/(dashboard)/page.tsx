@@ -17,7 +17,7 @@ export default async function AdminDashboardOverview() {
     { data: allProducts },
     { data: todayVisits }
   ] = await Promise.all([
-    supabase.from('orders').select('id, total_amount, status, created_at, contact_email, contact_phone, shipping_address, order_items(quantity, products(title))').order('created_at', { ascending: false }),
+    supabase.from('orders').select('id, total_amount, status, created_at, contact_email, contact_phone, shipping_address, order_items(quantity, product:products(title))').order('created_at', { ascending: false }),
     supabase.from('products').select('id, title, price, stock, image_url'),
     supabase.from('site_visits').select('id, created_at').gte('created_at', new Date(new Date().setHours(0,0,0,0)).toISOString())
   ])

@@ -221,7 +221,7 @@ export function DashboardCharts({
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Location</th>
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Products</th>
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Total Price</th>
-                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Type</th>
+                <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Retention</th>
                 <th style={{ padding: '0.75rem 0', fontWeight: 600 }}>Status</th>
               </tr>
             </thead>
