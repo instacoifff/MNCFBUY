@@ -15,6 +15,7 @@ import {
 } from 'recharts'
 import Image from 'next/image'
 import type { StatusDataItem, RankedItem } from '@/lib/types'
+import styles from './dashboard.module.css'
 
 // Mock Data for new visuals
 const channelData = [
@@ -105,7 +106,7 @@ export function DashboardCharts({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', marginTop: '1.5rem' }}>
       
       {/* Main 2-Column Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', '@media(min-width: 1200px)': { gridTemplateColumns: '2.3fr 1fr' } } as React.CSSProperties}>
+      <div className={styles.mainGrid}>
         
         {/* Left Main Column */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -262,7 +263,7 @@ export function DashboardCharts({
       </div>
 
           {/* Bottom Grid (Categories & Region) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem', '@media(min-width: 1024px)': { gridTemplateColumns: 'repeat(2, 1fr)' } } as any}>
+      <div className={styles.bottomGrid}>
         
         {/* Top Categories */}
         <div style={{ 
