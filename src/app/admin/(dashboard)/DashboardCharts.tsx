@@ -226,14 +226,20 @@ export function DashboardCharts({
               </tr>
             </thead>
             <tbody>
-              {/* Using mock recent orders array matching the screenshot exactly */}
-              {[
-                { id: '#NB-2356', name: 'Leslie Alexander', date: 'Jun 23, 2025', amt: '$299.00', pay: 'VISA', ful: 'Fulfilled', stat: 'Paid' },
-                { id: '#NB-2355', name: 'Wade Warren', date: 'Jun 23, 2025', amt: '$129.99', pay: 'Mastercard', ful: 'Processing', stat: 'Processing' },
-                { id: '#NB-2354', name: 'Cody Fisher', date: 'Jun 22, 2025', amt: '$89.00', pay: 'AMEX', ful: 'Fulfilled', stat: 'Shipped' },
-                { id: '#NB-2353', name: 'Darlene Robertson', date: 'Jun 22, 2025', amt: '$329.00', pay: 'VISA', ful: 'Fulfilled', stat: 'Paid' },
-                { id: '#NB-2352', name: 'Theresa Webb', date: 'Jun 21, 2025', amt: '$199.00', pay: 'Mastercard', ful: 'Pending', stat: 'Pending' },
-              ].map((ro, i) => (
+              {recentOrders.length > 0 ? recentOrders.map((ro, i) => {
+                // Map the status to display variations
+                let stat = 'Pending'
+                let ful = 'Pending'
+                if (ro.status === 'delivered') { stat = 'Paid'; ful = 'Fulfilled' }
+                else if (ro.status === 'shipped') { stat = 'Shipped'; ful = 'Fulfilled' }
+                else if (ro.status === 'cancelled') { stat = 'Cancelled'; ful = 'Cancelled' }
+                else if (ro.status === 'confirmed') { stat = 'Processing'; ful = 'Processing' }
+                
+                const amt = `$${Number(ro.total_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                const date = new Date(ro.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                const name = ro.contact_email?.split('@')[0] || 'Guest'
+                
+                return (
                 <tr key={i} style={{ borderBottom: i === 4 ? 'none' : '1px solid #f1f5f9', fontSize: '0.875rem' }}>
                   <td style={{ padding: '1rem 0', fontWeight: 600, color: '#0f172a' }}>{ro.id}</td>
                   <td style={{ padding: '1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -253,9 +259,9 @@ export function DashboardCharts({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                       <div style={{ 
                         width: '6px', height: '6px', borderRadius: '50%', 
-                        backgroundColor: ro.ful === 'Fulfilled' ? '#10b981' : ro.ful === 'Processing' ? '#3b82f6' : '#f59e0b'
+                        backgroundColor: ful === 'Fulfilled' ? '#10b981' : ful === 'Processing' ? '#3b82f6' : '#f59e0b'
                       }} />
-                      <span style={{ color: '#64748b' }}>{ro.ful}</span>
+                      <span style={{ color: '#64748b' }}>{ful}</span>
                     </div>
                   </td>
                   <td style={{ padding: '1rem 0' }}>
@@ -264,17 +270,21 @@ export function DashboardCharts({
                         borderRadius: '4px',
                         fontSize: '0.75rem',
                         fontWeight: 600,
-                        backgroundColor: ro.stat === 'Paid' ? 'rgba(16, 185, 129, 0.1)' : ro.stat === 'Processing' ? 'rgba(59, 130, 246, 0.1)' : ro.stat === 'Shipped' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: ro.stat === 'Paid' ? '#10b981' : ro.stat === 'Processing' ? '#3b82f6' : ro.stat === 'Shipped' ? '#8b5cf6' : '#ef4444'
+                        backgroundColor: stat === 'Paid' ? 'rgba(16, 185, 129, 0.1)' : stat === 'Processing' ? 'rgba(59, 130, 246, 0.1)' : stat === 'Shipped' ? 'rgba(139, 92, 246, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                        color: stat === 'Paid' ? '#10b981' : stat === 'Processing' ? '#3b82f6' : stat === 'Shipped' ? '#8b5cf6' : '#ef4444'
                      }}>
-                       {ro.stat}
+                       {stat}
                      </span>
                   </td>
                   <td style={{ padding: '1rem 0', color: '#94a3b8', cursor: 'pointer', textAlign: 'right' }}>
                     ⋮
                   </td>
                 </tr>
-              ))}
+              )}) : (
+                <tr>
+                  <td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>No recent orders found.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -297,33 +307,29 @@ export function DashboardCharts({
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {[
-                { name: 'Bags & Backpacks', value: '$442,560', pct: 35 },
-                { name: 'Apparel', value: '$324,120', pct: 26 },
-                { name: 'Accessories', value: '$256,780', pct: 21 },
-                { name: 'Footwear', value: '$125,100', pct: 10 },
-                { name: 'Others', value: '$100,000', pct: 8 },
-              ].map((cat, i) => (
+              {categorySalesData.length > 0 ? categorySalesData.map((cat, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '1rem', fontSize: '0.875rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', width: '150px' }}>
                     <div style={{ width: '24px', height: '24px', backgroundColor: '#f8fafc', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
-                      <span style={{ fontSize: '10px' }}>💼</span>
+                      <span style={{ fontSize: '10px' }}>📁</span>
                     </div>
-                    <span style={{ color: '#0f172a', fontWeight: 500 }}>{cat.name}</span>
+                    <span style={{ color: '#0f172a', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{cat.name}</span>
                   </div>
                   
                   <div style={{ flex: 1, height: '4px', backgroundColor: '#f1f5f9', borderRadius: '2px', overflow: 'hidden' }}>
-                    <div style={{ width: `${cat.pct}%`, height: '100%', backgroundColor: '#10b981', borderRadius: '2px' }} />
+                    <div style={{ width: `${cat.percentage}%`, height: '100%', backgroundColor: '#10b981', borderRadius: '2px' }} />
                   </div>
                   
                   <div style={{ width: '70px', textAlign: 'right', fontWeight: 600, color: '#0f172a' }}>
-                    {cat.value}
+                    {cat.sales} sold
                   </div>
                   <div style={{ width: '40px', textAlign: 'right', color: '#64748b' }}>
-                    {cat.pct}%
+                    {cat.percentage}%
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div style={{ color: '#64748b', fontSize: '0.875rem' }}>No category sales data yet.</div>
+              )}
             </div>
         </div>
 
